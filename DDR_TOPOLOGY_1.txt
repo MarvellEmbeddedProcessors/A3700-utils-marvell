@@ -1,0 +1,3 @@
+DDR_TYPE: DDR4
+CS0:
+  CAP: 512
