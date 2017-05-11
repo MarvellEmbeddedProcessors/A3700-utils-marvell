@@ -1,0 +1,5 @@
+DDR_TYPE: DDR4
+CS0:
+  CAP: 2048
+CS1:
+  CAP: 2048

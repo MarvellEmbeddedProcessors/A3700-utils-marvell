@@ -1,0 +1,76 @@
+; AVS enable
+; OTP data is stored in SM0~SM2 from GPP1
+; SVC_REV is stored in SM3
+; SM4 is the AVS value to set into register
+;
+LOAD_SM_VAL: SM4 0x99E7FFFF ;# Set VDD to 1200mV by default
+;
+TEST_SM_AND_BRANCH: SM3 0x0000000F 0x2 < AVSR	;use default value if SVC_REV<2
+;
+; read SVC_1200Mhz in OTP Data[37:32] = (D1 & 0x3F)
+ADD_SM_VAL: SM1 0xd	; base voltage is 0.898V(0xd), AVS=OTP+0xd
+AND_SM_VAL: SM1 0x3F
+; set AVS to register
+LOAD_SM_VAL: SM4 0x9000FFFF
+LSHIFT_SM_VAL: SM1 16
+OR_SM_SM: SM4 SM1
+LSHIFT_SM_VAL: SM1 6
+OR_SM_SM: SM4 SM1
+;
+; perform AVS reset
+LABEL: AVSR
+STORE_SM_ADDR: SM4 0xC0011500
+AND_VAL: 0xC0011500 0x1FFFFFFF	;# release AVS reset
+OR_VAL: 0xC0011500 0x50000000	;# Enable AVS
+DELAY: 0x000186A0               ;# Delay 100ms for AVS voltage wake up
+
+; Switch all clocks to REFCLOCK
+WRITE: 0XC0013010 0x00000000
+WRITE: 0XC0018010 0x00000000
+; TBG-A: SE vco_div 0x0,
+; DIFF vco_div 0x1, vco_range 0x9
+; tbg_N 0x2D KVCO = 1500 MHz
+WRITE: 0xC0013204 0x00F00091	; # reset tbga
+WRITE: 0xC0013204 0x00F000B5	; # N: bits[10:2] val 0x2D = 45
+WRITE: 0xC0013220 0x08030803	; # M: bits[8:0] val 0x3
+WRITE: 0xC0013208 0x94011400	; # SE vco_div bits[8:0] val 0x0 divider 2^0 = 1
+WRITE: 0xC0013230 0x00020002	; # DIFF vco_div bits [9:1] val 0x1 divider 2^1 = 2
+WRITE: 0xC0013208 0x94011400
+WRITE: 0xC001320C 0x56E656E5	; # bits [3:0] 0101 - INTPI 1.5 GHz to 2.0 GHz, bit [15:14] 01 - 1.2v
+WRITE: 0xC0013210 0x014D0149	; # bits [3:0] 0x9 - vco_range 1.35 to 1.5 GHz
+WRITE: 0xC001320C 0x56E656E5
+WRITE: 0xC0013204 0x00F000B4	; # active tbga
+WRITE: 0xC0013208 0x94011400
+WAIT_FOR_BIT_SET: 0xC0013208 0x80008000 0x00100000
+DELAY: 0x00000100
+; TBG-B: SE vco_div 0x1,
+; DIFF vco_div 0x1, vco_range 0xd
+; tbg_N 0x48 KVCO = 2400 MHz
+WRITE: 0xC0013204 0x00F100B4	; # reset tbgb
+WRITE: 0xC0013204 0x012100B4	; # N: bits[24:18] val 0x48 = 72
+WRITE: 0xC0013220 0x08030803	; # M: bits[24:16] val 0x3
+WRITE: 0xC0013208 0x14019400	; # SE vco_div bits[24:16] val 0x1 divider 2^1 = 2
+WRITE: 0xC0013230 0x00020002	; # DIFF vco_div bits [25:17] val 0x1 divider 2^1 = 2
+WRITE: 0xC0013208 0x14019400
+WRITE: 0xC001320C 0x56E656E5	; # bits [19:16] 0110 - INTPI 2 GHz to 2.5 GHz, bit [31:29] 01 - 1.2v
+WRITE: 0xC0013210 0x014D0149	; # bits [19:16] 0xD - vco_range 2.2 to 2.4 GHz
+WRITE: 0xC001320C 0x56E656E5
+WRITE: 0xC0013204 0x012000B4	; # active tbgb
+WRITE: 0xC0013208 0x14019400
+WAIT_FOR_BIT_SET: 0xC0013208 0x80008000 0x00100000
+DELAY: 0x00000100
+; Set clocks to 1250/800 preset
+WRITE: 0xC0013014 0x00000000	; # enable NB clks
+WRITE: 0xC0013004 0x12963023	; # set NB div0
+WRITE: 0xC0013008 0x310718F1	; # set NB div1
+WRITE: 0xC001300C 0x20CB3884	; # set NB div2
+WRITE: 0xC0013000 0x02CEFFFF	; # NB clk tbg select
+WRITE: 0xC0018014 0x00180000	; # enable SB clks
+WRITE: 0xC0018004 0x0351D6C8	; # set SB div0
+WRITE: 0xC0018008 0x006808C0	; # set SB div1
+WRITE: 0xC001800C 0x00000D00	; # set SB div2
+WRITE: 0xC0018000 0x002ACA40	; # SB clk tbg select
+WRITE: 0xC0013210 0x014D0149
+; Switch all clocks to back dividers
+WRITE: 0xC0013010 0x00009FFF	; # SB clocks select - all are output from clock divider except counter clock which is from XTAL
+WRITE: 0xC0018010 0x000007AA	; # SB clocks select - all are output from clock divider
