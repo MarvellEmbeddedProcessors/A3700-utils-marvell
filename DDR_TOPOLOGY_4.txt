@@ -1,0 +1,3 @@
+DDR_TYPE: DDR3
+CS0:
+  CAP: 1024
