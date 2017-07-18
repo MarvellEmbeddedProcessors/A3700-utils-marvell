@@ -17,6 +17,7 @@
 #
 
 DATE=`date +%d%m%Y`
+BOOT_DEV=$2
 IMGPATH=$3
 CLOCKSPATH=$4
 PRESET=$5
@@ -126,10 +127,17 @@ static_ddr(){
 			echo "Instructions:" >> $DDROUTFILE
 			if [ $DEBUG == "1" ]; then
 				awk -F ";<DEBUG-INFO>" '{if ($0 !~ /DEBUG-INFO/) {print $0} else {print $2}}' \
-					$GPP1FILE >> $DDROUTFILE
+					$GPP1FILE >> $DDROUTFILE.temp
 			else
-				awk '{if ($0 !~ /DEBUG-INFO/) {print $0}}' $GPP1FILE >> $DDROUTFILE
+				awk '{if ($0 !~ /DEBUG-INFO/) {print $0}}' $GPP1FILE >> $DDROUTFILE.temp
 			fi
+			if [ "$BOOT_DEV" != "UART" ]; then
+				awk -F ";<NON_UART>" '{if ($0 !~ /NON_UART/) {print $0} else {print $2}}' \
+					$DDROUTFILE.temp >> $DDROUTFILE
+			else
+				awk '{if ($0 !~ /NON_UART/) {print $0}}' $DDROUTFILE.temp >> $DDROUTFILE
+			fi
+			rm $DDROUTFILE.temp
 			echo "End Instructions:" >> $DDROUTFILE
 			echo "End GPP:" >> $DDROUTFILE
 		fi
@@ -188,7 +196,7 @@ case "$1" in
 	usage
 esac
 
-case "$2" in
+case $BOOT_DEV in
 SPINOR)
 	FLASH="0x5350490A		; Select SPI'0A"
 	;;
@@ -316,7 +324,7 @@ else
 		exit 1
 	else
 		#trusted uart mode, should load TIMH to 0x20002000
-		if [ "$2" = "UART" ]; then
+		if [ "$BOOT_DEV" = "UART" ]; then
 			while IFS='' read -r line; do
 				if [[ "$line" == *"Load Address:"* ]]; then
 					echo "Load Address:                   0x20002000		; TIM ISRAM addr" >> $OUTFILE
@@ -410,7 +418,7 @@ if [ "$TRUSTED" = "0x00000001" ]; then
 		exit 1
 	else
 		#trusted uart mode, should load TIMN to 0x20006000
-		if [ "$2" = "UART" ]; then
+		if [ "$BOOT_DEV" = "UART" ]; then
 			while IFS='' read -r line; do
 				if [[ "$line" == *"Load Address:"* ]]; then
 					echo "Load Address:                   0x20006000		; TIMN ISRAM addr" >> $TIMNOUTFILE
@@ -433,7 +441,7 @@ if [ "$TRUSTED" = "0x00000001" ]; then
 			echo "Cannot find $IMAGE file!"
 			exit 1
 		fi
-		if [[ "$ENCRYPT" = "1" && "$2" != "UART" ]]; then
+		if [[ "$ENCRYPT" = "1" && "$BOOT_DEV" != "UART" ]]; then
 			# If the boot image has to be encrypted, change the algorithm ID and size
 			while IFS='' read -r line; do
 				if [[ "$line" == *"Encrypt Algorithm ID:"* ]]; then
@@ -481,7 +489,7 @@ if [ "$TRUSTED" = "0x00000001" ]; then
 fi
 
 # Replace partition number in the output for EMMC
-if [[ "$2" = "EMMCNORM" || "$2" = "EMMCALT" ]]; then
+if [[ "$BOOT_DEV" = "EMMCNORM" || "$BOOT_DEV" = "EMMCALT" ]]; then
 	mv $TIMNOUTFILE $TIMNOUTFILE.temp
 	while IFS='' read -r line; do
 		if [[ "$line" == *"Partition Number:"* ]]; then
