@@ -72,6 +72,7 @@ The UART downloading procedure requires BootROM enters into UART R/W mode.
 	* boot-image_h.bin
 	* wtmi_h.bin
    UART download command:
+	sudo stty -F /dev/ttyUSB<port #> clocal
 	sudo ./WtpDownload_linux -P UART -C <port #> -R 115200 -B TIM_ATF.bin -I wtmi_h.bin -I boot-image_h.bin -E -V
 
 2. Trusted Images
@@ -81,6 +82,7 @@ The UART downloading procedure requires BootROM enters into UART R/W mode.
 	* boot-image_h.bin
 	* wtmi_h.bin
    UART download command:
+	sudo stty -F /dev/ttyUSB<port #> clocal
 	sudo ./WtpDownload_linux -P UART -C <port #> -R 115200 -B TIM_ATF_TRUSTED.bin -B TIMN_ATF_TRUSTED.bin -I wtmi_h.bin -I boot-image_h.bin -E -V
 
 Notes:
