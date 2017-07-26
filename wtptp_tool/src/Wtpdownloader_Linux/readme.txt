@@ -73,7 +73,8 @@ The UART downloading procedure requires BootROM enters into UART R/W mode.
 	* wtmi_h.bin
    UART download command:
 	sudo stty -F /dev/ttyUSB<port #> clocal
-	sudo ./WtpDownload_linux -P UART -C <port #> -R 115200 -B TIM_ATF.bin -I wtmi_h.bin -I boot-image_h.bin -E
+	./WtpDownload_linux -P UART -C <port #> -R 115200 -B TIM_ATF.bin -I wtmi_h.bin \
+		-I boot-image_h.bin -E
 
 2. Trusted Images
    UART image components:
@@ -83,22 +84,31 @@ The UART downloading procedure requires BootROM enters into UART R/W mode.
 	* wtmi_h.bin
    UART download command:
 	sudo stty -F /dev/ttyUSB<port #> clocal
-	sudo ./WtpDownload_linux -P UART -C <port #> -R 115200 -B TIM_ATF_TRUSTED.bin -B TIMN_ATF_TRUSTED.bin -I wtmi_h.bin -I boot-image_h.bin -E
+	./WtpDownload_linux -P UART -C <port #> -R 115200 -B TIM_ATF_TRUSTED.bin \
+		-B TIMN_ATF_TRUSTED.bin -I wtmi_h.bin -I boot-image_h.bin -E
 
 Notes:
-1. WtpDownload application requires to assign the userid to 'dailout' group access.
+1. WtpDownload application doesn't require 'sudoer' privilege over USB Serial port.
+2. WtpDownload application requires to assign the userid to 'dailout' group access.
    (need re-login to take effect)
    sudo usermod -a -G dialout <username>
-2. Please refer to ATF - doc/mvebu/build.txt for the build command of UART images.
-3. The UART image components are archieved in ATF - build/a3700/[release|debug]/uart-images.tgz.
+3. Please refer to ATF - doc/mvebu/build.txt for the build command of UART images.
+4. The UART image components are archieved in ATF - build/a3700/[release|debug]/uart-images.tgz.
 
 o Escape sequence instrustions:
 When working with a mal-functional bootloader in flash, WTP download tool can be used to
 trap BootROM into UART R/W mode via UART port.
 
 1. Press the 'RESET' button on your system and hold on.
-2. Run the following command on your host machine and releaese the 'RESET' button in the meanwhile.
+2. Run the following command on your host machine and releaese the 'RESET' button in the
+   meanwhile.
    sudo stty -F /dev/ttyUSB<port #> clocal
-   sudo ./WtpDownload_linux -P UART -C <port #> -R 115200 -Y
+   ./WtpDownload_linux -P UART -C <port #> -R 115200 -Y
 
+o Combined instructions for UART downloading and escape sequence:
+The WtpDownload application provides an option to execute escape sequence and UART downloading
+in a single command.
+	sudo stty -F /dev/ttyUSB<port #> clocal
+	./WtpDownload_linux -P UART -C <port #> -R 115200 -B TIM_ATF.bin -I wtmi_h.bin \
+		-I boot-image_h.bin -E -O
 
