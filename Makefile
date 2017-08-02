@@ -3,4 +3,4 @@ all:
 
 clean:
 	${Q}${MAKE} --no-print-directory -C wtmi clean
-	@rm -f atf-ntim.txt ddr_static.txt
+	@rm -f ddr/tim_ddr/ddr_static.txt
