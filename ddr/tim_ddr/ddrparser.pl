@@ -55,6 +55,13 @@ sub parse_dram_data
 
 	copy("${path}/${ddr_type}-${ddr_clk}-${cs_num}CS.txt", "${path}/ddr_static.txt");
 
+	unlink("${path}/clocks_ddr.txt");
+	if ($ddr_type eq "ddr3") {
+		copy("${path}/clocks-ddr3.txt", "${path}/clocks_ddr.txt");
+	} elsif ($ddr_type eq "ddr4") {
+		copy("${path}/clocks-ddr4.txt", "${path}/clocks_ddr.txt");
+	}
+
 	# The below code is to update ddr static configuration's ddr size regitsers value
 	# according to the memory size per each chip select in DDR_TOPOLOGY_X.txt file.
 

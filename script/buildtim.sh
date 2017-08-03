@@ -162,12 +162,6 @@ static_ddr(){
 		echo "Instructions:" >> $DDROUTFILE
 		cat $CLOCKSFILE >> $DDROUTFILE
 		cat $DDRFILE >> $DDROUTFILE
-		if [ $DEBUG == "1" ]; then
-			awk -F ";<DEBUG-INFO>" '{if ($0 !~ /DEBUG-INFO/) {print $0} else {print $2}}' \
-				$DLLTUNFILE >> $DDROUTFILE
-		else
-			awk '{if ($0 !~ /DEBUG-INFO/) {print $0}}' $DLLTUNFILE >> $DDROUTFILE
-		fi
 		echo "End Instructions:" >> $DDROUTFILE
 		echo "End DDR Initialization:" >> $DDROUTFILE
 
@@ -229,30 +223,9 @@ case "$DDRTOPOLOGY" in
 	usage
 esac
 
-case "$PRESET" in
-CPU_600_DDR_600)
-	CLOCKSFILE=$CLOCKSPATH/clocks-600-600.$FILEEXT
-	$DDRPARSER -i $DDRTOPFILE -c 600
-	;;
-CPU_800_DDR_800)
-	CLOCKSFILE=$CLOCKSPATH/clocks-800-800.$FILEEXT
-	$DDRPARSER -i $DDRTOPFILE -c 800
-	;;
-CPU_1000_DDR_800)
-	CLOCKSFILE=$CLOCKSPATH/clocks-1000-800.$FILEEXT
-	$DDRPARSER -i $DDRTOPFILE -c 800
-	;;
-CPU_1200_DDR_750)
-	CLOCKSFILE=$CLOCKSPATH/clocks-1200-750.$FILEEXT
-	# DDR 750MHz's configuration is same with DDR 800MHZ's, so share the same ddr file
-	$DDRPARSER -i $DDRTOPFILE -c 800
-	;;
-*)
-	echo "Unsupported clock preset $PRESET!"
-	usage
-esac
-
-
+CLOCKSFILE=$CLOCKSPATH/clocks_ddr.txt
+# All DDR use the configuration for 800M
+$DDRPARSER -i $DDRTOPFILE -c 800
 
 if [ ! -e "$DDRFILE" ]; then
 	echo "Cannot find DDR init file!"

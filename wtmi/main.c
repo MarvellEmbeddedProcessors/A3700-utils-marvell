@@ -26,6 +26,7 @@
 #include "clock.h"
 #include "wtmi.h"
 
+#include "../ddr/wtmi_ddr/export.h"
 
 /***************************************************************************************************
   * exception_handler
@@ -152,6 +153,10 @@ int main(int exception, char **dummy)
 		return status;
 	init_printf(NULL, uart_putc);
 	printf("WTMI Started!\n");
+
+	/* Call ddrgen library */
+	wtmi_ddr_main();
+
 	/* Mailbox commands handling loop */
 	while (1) {
 		status = mbox_receive(&cmd, args);
