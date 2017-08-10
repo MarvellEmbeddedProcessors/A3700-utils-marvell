@@ -19,6 +19,8 @@
 #include "io.h"
 #include "regs.h"
 #include "bits.h"
+#include "printf.h"
+#include "uart.h"
 #include "mbox.h"
 #include "efuse.h"
 #include "clock.h"
@@ -145,6 +147,11 @@ int main(int exception, char **dummy)
 	if (status)
 		return status;
 
+	status = uart_init(115200);
+	if (status)
+		return status;
+	init_printf(NULL, uart_putc);
+	printf("WTMI Started!\n");
 	/* Mailbox commands handling loop */
 	while (1) {
 		status = mbox_receive(&cmd, args);
