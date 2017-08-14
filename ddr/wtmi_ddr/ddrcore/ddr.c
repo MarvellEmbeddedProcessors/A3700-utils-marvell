@@ -47,6 +47,8 @@ void mc6_init_timing_selfrefresh(enum ddr_type type, unsigned int speed)
                         wrval = (rdval & ~(0x00003F3F)) | (0x80B);      //for 800MHz
                 else if(speed == 600)
                         wrval = (rdval & ~(0x00003F3F)) | (0x80B);      //for 600MHz
+                else if(speed == 750)
+                        wrval = (rdval & ~(0x00003F3F)) | (0x80B);      //for 750MHz
         }
         else if ((type==DDR4) && (speed == 800))
                 wrval = (rdval & ~(0x00003F3F)) | (0xB0C);              //for 800MHz CL[0:5], cwl = 11[0xB], cl = 12[0xC]
