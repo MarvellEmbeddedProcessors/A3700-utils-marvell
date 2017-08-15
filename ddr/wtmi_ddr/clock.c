@@ -60,11 +60,11 @@ TBG-A-P 1200	2	NA	a53_cpu_pclk_sel		600	NB	DIV0[30:28]	NA
 		2	NA	setm_tmx_pclk_sel	600	NB	DIV1[20:18]	NA
 		2	NA	trace_pclk_sel		600	NB	DIV0[22:20]	NA
 		3	2	tsecm_pclk_sel		200	NB	DIV1[14:12]	DIV1[17:15]
-		3	2	sqf_pclk_sel		200	NB	DIV1[26:24]	DIV1[29:27]
+		2	3	sqf_pclk_sel		200	NB	DIV1[26:24]	DIV1[29:27]
 -------------------------------------------------------------------------------------------------------------------------------------
 		PRE-1	PRE-2	TARGET			FREQ	BR	PRE-1		PRE-2		PRE-1		PRE-2
 -------------------------------------------------------------------------------------------------------------------------------------
-TBG-B_S 1000	2	1	eip97_pclk_sel		500	NB	DIV2[24:22]	DIV2[21:19]
+TBG-B_S 1000	1	2	eip97_pclk_sel		500	NB	DIV2[24:22]	DIV2[21:19]
 		5	2	pwm_pclk_sel		100	NB	DIV0[5:3]	DIV0[2:0]
 		5	1	sec_at_pclk_sel		200	NB	DIV1[5:3]	DIV1[2:0]
 		5	2	sec_dap_pclk_sel	100	NB	DIV1[11:9]	DIV1[8:6]
@@ -239,8 +239,8 @@ static struct clock_cfg clk_cfg_all[] = {\
 		{{TBG_A_S, TBG_B_S, TBG_B_S, TBG_B_S, TBG_A_P, TBG_A_P, TBG_A_P,\
 		  TBG_B_S, TBG_B_S, TBG_A_P, TBG_B_S, TBG_A_P, TBG_B_S},\
 		 {2, 5, 2, 4, 1, 2, 6, 2},		/* DIV0 */\
-		 {1, 5, 2, 5, 3, 4, 2, 4, 3},		/* DIV1 */\
-		 {4, 1, 5, 1, 3, 2, 1, 0, 0, 1} },	/* DIV2 */\
+		 {1, 5, 2, 5, 2, 3, 2, 2, 3},		/* DIV1 */\
+		 {4, 1, 5, 1, 3, 1, 2, 0, 0, 1} },	/* DIV2 */\
 		/* SouthBridge */\
 		{{TBG_B_P, TBG_B_S, TBG_B_S, TBG_A_S, TBG_B_S, TBG_B_S, TBG_B_S},\
 		 {1, 3, 2, 5, 2, 4, 1, 5},	/* DIV0 */\
