@@ -90,7 +90,7 @@ Configuration 1	CPU 800, DDR 800
 
 		SE DIV	DIFF DIV
 KVCO-A	1600	0	1
-KVCO-B	2000	1	1
+KVCO-B	2000	1	2
 =====================================================================================================================================
 		PRE-1	PRE-2	TARGET			FREQ	BR	PRE-1		PRE-2		PRE-1		PRE-2
 -------------------------------------------------------------------------------------------------------------------------------------
@@ -250,7 +250,7 @@ static struct clock_cfg clk_cfg_all[] = {\
 	/* Clock tree configuration entry 1 (default working setup) */\
 	{ 800, 800, /* CPU, DDR */\
 		{1600, 0, 1}, /* TBG-A: KVCO Freq, SE_VCODIV, DIFF_VCODIV */\
-		{2000, 1, 1}, /* TBG-B: KVCO Freq, SE_VCODIV, DIFF_VCODIV */\
+		{2000, 1, 2}, /* TBG-B: KVCO Freq, SE_VCODIV, DIFF_VCODIV */\
 		/* NorthBridge */\
 		{{TBG_A_S, TBG_A_P, TBG_B_S, TBG_B_S, TBG_A_P, TBG_A_P, TBG_A_P,\
 		  TBG_B_S, TBG_B_S, TBG_A_P, TBG_A_P, TBG_A_P, TBG_A_P},\
