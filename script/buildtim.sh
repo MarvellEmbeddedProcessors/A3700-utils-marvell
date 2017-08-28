@@ -225,7 +225,7 @@ esac
 
 CLOCKSFILE=$CLOCKSPATH/clocks_ddr.txt
 # All DDR use the configuration for 800M
-$DDRPARSER -i $DDRTOPFILE -c 800
+$DDRPARSER -i $DDRTOPFILE
 
 if [ ! -e "$DDRFILE" ]; then
 	echo "Cannot find DDR init file!"

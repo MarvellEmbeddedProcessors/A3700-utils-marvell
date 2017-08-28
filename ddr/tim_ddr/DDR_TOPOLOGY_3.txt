@@ -1,5 +1,26 @@
-DDR_TYPE: DDR4
-CS0:
-  CAP: 2048
-CS1:
-  CAP: 2048
+#
+# This file is the input for A3700 DDR porting tool,
+# each item is one parameter for DDR topology, which will be parsed by
+# DDR tool and generate DDR register list accordingly.
+# Supported Marvell boards:
+#       DDR4 2CS : DB-88F3720-DDR4-Modular (4GB)
+#
+
+#DDR4
+ddr_type=1
+
+#2CS
+ddr_cs_mask=3
+
+#DDR4_2400R
+ddr_speedbin_index=10
+
+#16BIT
+ddr_bus_width_index=2
+
+#32Gbits (2GB*2)
+ddr_mem_size_index=6
+
+#800M
+ddr_mem_freq_index=3
+
