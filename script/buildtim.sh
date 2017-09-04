@@ -68,6 +68,13 @@ GPP2PREF="gpp2"
 GPP1FILE="$IMGPATH/$GPP1PREF.$FILEEXT"
 GPP2FILE="$IMGPATH/$GPP2PREF.$FILEEXT"
 
+# TIM version
+TIMDIR=$IMGPATH/..
+VERPREF="version"
+VERFILE="$TIMDIR/$VERPREF.$FILEEXT"
+SCRIPTPATH=$(dirname "$0")
+TIMGETVER=$SCRIPTPATH/gettimver.sh
+
 usage () {
 	echo ""
 	echo "$0 - script for creating TIM/NTIM/TIMN image descriptors"
@@ -138,6 +145,12 @@ static_ddr(){
 				awk '{if ($0 !~ /NON_UART/) {print $0}}' $DDROUTFILE.temp >> $DDROUTFILE
 			fi
 			rm $DDROUTFILE.temp
+
+			# TIM version printing
+			if [ "$BOOT_DEV" != "UART" ]; then
+				# Read TIM version from "version.txt" file
+				$TIMGETVER $VERFILE $DDROUTFILE
+			fi
 			echo "End Instructions:" >> $DDROUTFILE
 			echo "End GPP:" >> $DDROUTFILE
 		fi
