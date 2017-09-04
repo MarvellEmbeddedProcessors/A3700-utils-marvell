@@ -152,7 +152,7 @@ int main(int exception, char **dummy)
 	if (status)
 		return status;
 	init_printf(NULL, uart_putc);
-	printf("WTMI Started!\n");
+	printf("WTMI%s\n", VERSION);
 
 	/* Call ddrgen library */
 	wtmi_ddr_main();
