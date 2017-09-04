@@ -39,7 +39,13 @@ BINPATH  = build
 LDSCRIPT = wtmi.ld
 INCLUDE  = -I.
 
-CFLAGS   = -g -gdwarf-2 -Wall -fno-stack-protector $(INCLUDE) -Os $(CPUOPTS)
+BUILD_STRING	:=	$(shell git log -n 1 --pretty=format:"%h")
+LOCAL_VERSION_PATH	:=	..
+LOCAL_VERSION_FILE	:=	$(LOCAL_VERSION_PATH)/localversion
+LOCAL_VERSION_STRING	:=	$(shell cat $(LOCAL_VERSION_FILE))
+VERSION_STRING	:=	$(LOCAL_VERSION_STRING)-$(BUILD_STRING)
+
+CFLAGS   = -g -gdwarf-2 -Wall -fno-stack-protector $(INCLUDE) -Os $(CPUOPTS) -DVERSION=\"$(VERSION_STRING)\"
 CPPFLAGS =
 ASFLAGS  = -g --gdwarf-2 --warn $(INCLUDE) $(CPUOPTS)
 LDFLAGS  = -nostdlib -T $(LDSCRIPT) -Xlinker "--build-id=none"
