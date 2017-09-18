@@ -36,6 +36,9 @@
 #include "ddr.h"
 #include "ddr_support.h"
 
+#define DDR3_QSGATING
+#define DDR4_VREF_TRAINING
+
 enum ddr_type tc_ddr_type;
 unsigned int tc_cs_num;
 
