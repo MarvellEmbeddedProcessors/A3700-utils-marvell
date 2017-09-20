@@ -1,0 +1,108 @@
+A3700 DDR Porting Guide
+====================
+This document provides instructions for porting the DDR initialization code in
+TIM header to a customer board.
+
+1. Relevant Devices
+-------------------
+- Armada-37x0
+
+2. Introduction
+---------------
+Armada37x0 performs the DDR intialization with the following two stages:
+    TIM stage : static DDR PHY and controller initialization according to the actual DDR
+                topology, which guarantees DDR stable at a relevant low frequency
+                (DDR3 - 300MHz, DDR4 - 400MHz).
+    WTMI stage: raise the DDR clock to a higher speed specified in build command, and
+                performs dynamic DDR PHY training
+
+The major effort of DDR porting is about dealing with the different DDR topologies.
+Thus, this document will focus on the changes of DDR code in TIM stage only.
+
+3. A3700 DDR Porting tool usage
+-------------------------------
+This tool is located at /path_to_A3700_utils/ddr/tim_ddr/
+
+	Usage: ddr_tool -i CFG_FILE -o OUTPUT_FILE [OPTION]
+	Read configuration from CFG_FILE and generate ddr reg list to OUTPUT_FILE
+        -r      replace the reg value in list
+        -h      display this help
+
+	For example:
+        ./ddr_tool -i cfg_ddr4_1cs.txt -o tim_ddr4_1cs.txt -r 0xC0000380=0x0007A120
+
+4. Configuration file input
+---------------------------
+The configuration file is a txt file with items like "name=value", those lines starts with "#"
+will be skipped by the programe as comments. one example of the configuration file is like below:
+
+	#DDR3
+	ddr_type=0
+
+	#1CS
+	ddr_cs_mask=1
+
+	#DDR3_1600K
+	ddr_speedbin_index=25
+
+	#16BIT
+	ddr_bus_width_index=2
+
+	#4Gbits (512MB)
+	ddr_mem_size_index=3
+
+5. configuration items
+----------------------
+name:   ddr_type
+value:  0-DDR3, 1-DDR4
+
+name:   ddr_cs_mask
+value:  1-1CS, 3-2CS
+
+name:   ddr_bus_width_index
+value:  0-4bits, 1-8bits, 2-16bits, 3-32bits
+tips:   this is the data width of the DDR chip
+
+name:   ddr_mem_size_index
+value:  0-512Mb, 1-1GBb, 2-2Gb,
+        3-4Gb, 4-8Gb, 5-16Gb, 6-32Gb
+tips:   this is the memory size (in bits) of the whole board, not single chip
+
+name:   ddr_speedbin_index
+value:
+        0-DDR4_1600J,
+        1-DDR4_1600K,
+        2-DDR4_1600L,
+        3-DDR4_1866L,
+        4-DDR4_1866M,
+        5-DDR4_1866N,
+        6-DDR4_2133N,
+        7-DDR4_2133P,
+        8-DDR4_2133R,
+        9-DDR4_2400P,
+        10-DDR4_2400R,
+        11-DDR4_2400S,
+        12-DDR4_2400U,
+
+        13-DDR3_800D,
+        14-DDR3_800E,
+        15-DDR3_1066E,
+        16-DDR3_1066F,
+        17-DDR3_1066G,
+        18-DDR3_1333F,
+        19-DDR3_1333G,
+        20-DDR3_1333H,
+        21-DDR3_1333J,
+        22-DDR3_1600G,
+        23-DDR3_1600H,
+        24-DDR3_1600J,
+        25-DDR3_1600K,
+        26-DDR3_1866J,
+        27-DDR3_1866K,
+        28-DDR3_1866L,
+        29-DDR3_1866M,
+        30-DDR3_2133K,
+        31-DDR3_2133L,
+        32-DDR3_2133M,
+        33-DDR3_2133N,
+
