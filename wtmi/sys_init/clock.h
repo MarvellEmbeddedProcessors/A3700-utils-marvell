@@ -222,6 +222,24 @@ struct clock_cfg {
 	struct sb_clock_cfg	sb_clk_cfg;
 };
 
+enum ssc_mode {
+	CENTER_SPREAD = 0,
+	DOWN_SPREAD
+};
+
+enum ssc_offset_mode {
+	freq_down = 0,
+	freq_up
+};
+
+struct ssc_cfg {
+	enum ssc_mode		mode;
+	u32			mod_freq; /* hz */
+	u32			amp_freq; /* hz */
+	u32			offset;
+	enum ssc_offset_mode	offset_mode;
+};
+
 enum clk_preset {
 	CLK_PRESET_CPU600_DDR600  = 0,
 	CLK_PRESET_CPU800_DDR800,
