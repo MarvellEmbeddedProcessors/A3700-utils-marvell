@@ -36,6 +36,10 @@
 #include "sys.h"
 #include "clock.h"
 
+/* settings for SSC clock */
+#define SSC_MODULATION_FREQ 32500
+#define SSC_AMPLITUDE_FREQ 14000000
+
 /* Init values for the static clock configurations array */
 /*
 *************************************************************************************************************************************
@@ -490,6 +494,124 @@ static u32 set_tbg_clock(u32 kvco_mhz,
 	return 0;
 }
 
+static u32 set_ssc_clock(u32 kvco_mhz,
+					u32 se_vco_div,
+					enum clock_src tbg_typ,
+					struct ssc_cfg *ssc)
+{
+	u32 regval;
+	u32 freq_div, tval;
+
+	/* SSC can not be enabled if kvco < 1500mhz */
+	if (kvco_mhz < 1500)
+		return -1;
+
+	/* 1. Toggle TBG_X_SSC_RESET_EXT  */
+	regval = readl(MVEBU_NORTH_BRG_TBG_CTRL5);
+	regval |= (tbg_typ == TBG_A) ? BIT11 : BIT27;
+	writel(regval, MVEBU_NORTH_BRG_TBG_CTRL5);
+
+	regval &= (tbg_typ == TBG_A) ? ~(BIT11) : ~(BIT27);
+	writel(regval, MVEBU_NORTH_BRG_TBG_CTRL5);
+
+	/* 2. Set frequency offset */
+	if (ssc->offset) { /* Use frequency offset */
+		/* Program TBG_X_FREQ_OFFSET */
+		regval = readl(MVEBU_NORTH_BRG_TBG_CTRL4);
+		regval &= (tbg_typ == TBG_A) ? ~(0xFFFFUL << 16) : ~0xFFFFUL;
+		regval |= (tbg_typ == TBG_A) ? (ssc->offset << 16) : ssc->offset;
+		writel(regval, MVEBU_NORTH_BRG_TBG_CTRL4);
+
+		/* Program TBG_X_FREQ_OFFSET_16 */
+		regval = readl(MVEBU_NORTH_BRG_TBG_CTRL3);
+		regval &= (tbg_typ == TBG_A) ? ~(BIT4) : ~(BIT20);
+		regval |= (tbg_typ == TBG_A) ? (ssc->offset_mode << 4) : (ssc->offset_mode << 20);
+		writel(regval, MVEBU_NORTH_BRG_TBG_CTRL3);
+
+		/* Toggle TBG_X_FREQ_OFFSET_VALID */
+		regval = readl(MVEBU_NORTH_BRG_TBG_CTRL3);
+		regval |= (tbg_typ == TBG_A) ? BIT11 : BIT27;
+		writel(regval, MVEBU_NORTH_BRG_TBG_CTRL3);
+
+		regval &= (tbg_typ == TBG_A) ? ~(BIT11) : ~(BIT27);
+		writel(regval, MVEBU_NORTH_BRG_TBG_CTRL3);
+	} else { /* Don't use frequency offset */
+		regval = readl(MVEBU_NORTH_BRG_TBG_CTRL3);
+		regval &= (tbg_typ == TBG_A) ? ~(BIT11 | BIT12) : ~(BIT27 | BIT28);
+		writel(regval, MVEBU_NORTH_BRG_TBG_CTRL3);
+	}
+
+	/* 3. Program TBG_X_SSC_FREQ_DIV */
+	if (ssc->mode == DOWN_SPREAD)
+		freq_div = (kvco_mhz * 125000 * (1 << se_vco_div)) / ssc->mod_freq;
+	else
+		freq_div = (kvco_mhz * 62500 * (1 << se_vco_div)) / ssc->mod_freq;
+
+	/* According to the test result, 600Mhz need special settings */
+	if (get_ddr_clock() == 600)
+		freq_div = 0x2800;
+
+	regval = readl(MVEBU_NORTH_BRG_TBG_CTRL6);
+	regval &= (tbg_typ == TBG_A) ? ~0xFFUL : ~(0xFFUL << 16);
+	regval |= (tbg_typ == TBG_A) ? freq_div : freq_div << 16;
+	writel(regval, MVEBU_NORTH_BRG_TBG_CTRL6);
+
+	/* 4. Program TBG_X_SSC_RNGE to achieve disired SSC amplitude */
+	tval = ((((ssc->amp_freq) / 1000000) << 26)/(kvco_mhz * freq_div)) & 0x7FFUL;
+	/* According to the test result, 600Mhz need special settings */
+	if (get_ddr_clock() == 600)
+		tval = 0x3c;
+	regval = readl(MVEBU_NORTH_BRG_TBG_CTRL5);
+	regval &= (tbg_typ == TBG_A) ? ~0x7FFUL : ~(0x7FFUL << 16);
+	regval |= (tbg_typ == TBG_A) ? tval : tval << 16;
+	writel(regval, MVEBU_NORTH_BRG_TBG_CTRL5);
+
+	/* 5. Program TBG_X_SSC_MDOE */
+	regval = readl(MVEBU_NORTH_BRG_TBG_CTRL5);
+	regval &= (tbg_typ == TBG_A) ? ~BIT12 : ~BIT28;
+	regval |= (tbg_typ == TBG_A) ? (ssc->mode << 12) : (ssc->mode << 28);
+	writel(regval, MVEBU_NORTH_BRG_TBG_CTRL5);
+
+	/* 6. (Optional) Program TBG_X_FREQ_OFFSET_EN */
+
+	/* 7. Program TBG_X_ICP, same value with set_tbg_clock() */
+
+	/* 8. Program TBG_X_CTUNE = 0 */
+	regval = readl(MVEBU_NORTH_BRG_TBG_CTRL1);
+	regval &= (tbg_typ == TBG_A) ? ~(BIT12 | BIT13) : ~(BIT28 | BIT29);
+	writel(regval, MVEBU_NORTH_BRG_TBG_CTRL1);
+
+	/* 9. Program TBG_X_INTPR = 4 */
+	regval = readl(MVEBU_NORTH_BRG_TBG_CTRL2);
+	regval &= (tbg_typ == TBG_A) ? ~(BIT4 | BIT5 | BIT6) : ~(BIT20 | BIT21 | BIT22);
+	regval |= (tbg_typ == TBG_A) ? 4 << 4 : 4 << 20;
+	writel(regval, MVEBU_NORTH_BRG_TBG_CTRL2);
+
+	/* 10. Program TBG_X_INTPI, same value with set_tbg_clock() */
+
+	/* 11. Set TBG_X_PI_EN */
+	regval = readl(MVEBU_NORTH_BRG_TBG_CTRL3);
+	regval |= (tbg_typ == TBG_A) ? BIT5 : BIT21;
+	writel(regval, MVEBU_NORTH_BRG_TBG_CTRL3);
+
+	/* 12. Set TBG_X_SEL_VCO_CLK_EN */
+	regval = readl(MVEBU_NORTH_BRG_TBG_CTRL1);
+	regval |= (tbg_typ == TBG_A) ? BIT10 : BIT26;
+	writel(regval, MVEBU_NORTH_BRG_TBG_CTRL1);
+
+	/* 13. Set TBG_X_SSC_CLK_EN */
+	regval = readl(MVEBU_NORTH_BRG_TBG_CTRL3);
+	regval |= (tbg_typ == TBG_A) ? BIT10 : BIT26;
+	writel(regval, MVEBU_NORTH_BRG_TBG_CTRL3);
+
+	/* 14. wait 5us */
+	wait_ns(5000);
+
+	/* 15. Set TBG_X_PI_LOOP_MODE = 1 */
+	regval = readl(MVEBU_NORTH_BRG_TBG_CTRL2);
+	regval |= (tbg_typ == TBG_A) ? BIT13 : BIT29;
+	writel(regval, MVEBU_NORTH_BRG_TBG_CTRL2);
+}
 
 /*****************************************************************************
  * get_cpu_clock
@@ -523,6 +645,7 @@ int get_ddr_clock(void)
 int setup_clock_tree(void)
 {
 	u32 rval, reg_val;
+	struct ssc_cfg ssc;
 
 	if (preset_flag == 0)
 		return -1;
@@ -542,6 +665,21 @@ int setup_clock_tree(void)
 		       clk_cfg->tbg_a.kvco_mhz);
 		return rval;
 	}
+
+	/* Disable SSC for TBG-A (bit[10]) and TBG-B (bit[26]) */
+	reg_val = readl(MVEBU_NORTH_BRG_TBG_CTRL3);
+	reg_val &= ~(BIT10 | BIT26);
+	writel(reg_val, MVEBU_NORTH_BRG_TBG_CTRL3);
+
+	/* set TBG-A SSC clock */
+	ssc.mode = DOWN_SPREAD;
+	ssc.mod_freq = SSC_MODULATION_FREQ;
+	ssc.amp_freq = SSC_AMPLITUDE_FREQ;
+	ssc.offset = 0;
+	rval = set_ssc_clock(clk_cfg->tbg_a.kvco_mhz,
+			     clk_cfg->tbg_a.se_vcodiv,
+			     TBG_A,
+			     &ssc);
 
 	/* set TGB-B clock frequency */
 	rval = set_tbg_clock(clk_cfg->tbg_b.kvco_mhz,
@@ -660,11 +798,6 @@ int setup_clock_tree(void)
 	reg_val |= (clk_cfg->sb_clk_cfg.clock_sel.usb32_ss_sys_pclk_sel & 0x3) << 18;
 	reg_val |= (clk_cfg->sb_clk_cfg.clock_sel.sb_axi_pclk_sel & 0x3) << 20;
 	writel(reg_val, MVEBU_SOUTH_CLOCK_TBG_SELECT_REG);
-
-	/* Disable SSC for TBG-A (bit[10]) and TBG-B (bit[26]) */
-	reg_val = readl(MVEBU_NORTH_BRG_TBG_CTRL3);
-	reg_val &= ~(BIT10 | BIT26);
-	writel(reg_val, MVEBU_NORTH_BRG_TBG_CTRL3);
 
 	/*
 	 * Switch all North/South Bridge clock sources from XTAL to clock
