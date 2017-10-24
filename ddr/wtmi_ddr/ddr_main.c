@@ -63,6 +63,7 @@ int wtmi_ddr_main(void)
 
 	printf("ENTER init_ddrgen\n");
 
+	ddr_para.warm_boot = 0;
 	ddr_para.log_level = LOG_LEVEL_NONE;
 	ddr_para.flags = FLAG_REGS_DUMP_NONE;
 
