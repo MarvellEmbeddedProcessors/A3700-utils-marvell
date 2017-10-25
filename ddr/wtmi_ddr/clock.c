@@ -238,7 +238,7 @@ static struct clock_cfg clk_cfg_all[] = {\
 		/* NorthBridge */\
 		{{TBG_A_S, TBG_B_S, TBG_B_S, TBG_B_S, TBG_A_P, TBG_A_P, TBG_A_P,\
 		  TBG_B_S, TBG_B_S, TBG_A_P, TBG_B_S, TBG_A_P, TBG_B_S},\
-		 {2, 5, 2, 4, 1, 2, 6, 2},		/* DIV0 */\
+		 {4, 5, 2, 4, 1, 2, 6, 2},		/* DIV0 */\
 		 {1, 5, 2, 5, 2, 3, 2, 2, 3},		/* DIV1 */\
 		 {4, 1, 5, 1, 3, 1, 2, 0, 0, 1} },	/* DIV2 */\
 		/* SouthBridge */\
@@ -286,7 +286,7 @@ static struct clock_cfg clk_cfg_all[] = {\
 		/* NorthBridge */\
 		{{TBG_B_S, TBG_B_S, TBG_B_S, TBG_B_S, TBG_B_S, TBG_B_S, TBG_B_S,\
 		  TBG_B_S, TBG_A_S, TBG_B_S, TBG_A_P, TBG_B_S, TBG_A_S},\
-		{3, 4, 3, 4, 1, 1, 5, 1},		/* DIV0 */\
+		{6, 4, 3, 4, 1, 1, 5, 1},		/* DIV0 */\
 		{1, 6, 3, 4, 1, 6, 1, 1, 6},		/* DIV1 */\
 		{4, 1, 6, 1, 3, 1, 3, 0, 0, 1} },	/* DIV2 */\
 		/* SouthBridge */\
