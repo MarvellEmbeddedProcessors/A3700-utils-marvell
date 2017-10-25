@@ -253,7 +253,7 @@ static struct clock_cfg clk_cfg_all[] = {\
 		{2000, 1, 2}, /* TBG-B: KVCO Freq, SE_VCODIV, DIFF_VCODIV */\
 		/* NorthBridge */\
 		{{TBG_A_S, TBG_A_P, TBG_B_S, TBG_B_S, TBG_A_P, TBG_A_P, TBG_A_P,\
-		  TBG_B_S, TBG_B_S, TBG_A_P, TBG_A_P, TBG_A_P, TBG_A_P},\
+		  TBG_B_S, TBG_B_S, TBG_A_P, TBG_A_P, TBG_A_P, TBG_B_S},\
 		{4, 5, 2, 4, 1, 1, 5, 1},		/* DIV0 */\
 		{1, 5, 2, 5, 1, 4, 1, 1, 4},		/* DIV1 */\
 		{4, 1, 4, 1, 4, 2, 1, 0, 0, 1} },	/* DIV2 */\
