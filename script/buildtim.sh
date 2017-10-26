@@ -325,8 +325,13 @@ else
 	fi
 
 	# Trusted (TIM) has CSK keys block before reserved area
-	i=1
-	while [ "$i" -le "$KEYSNUM" ]; do
+	if [ "$KEYSNUM" != "16" ]; then
+		echo "The number of csk files is less than 16!"
+		exit 1
+	fi
+
+	i=0
+	while [ "$i" -le "$[$KEYSNUM - 1]" ]; do
 		IMAGE="$IMGPATH/$CSKPREF-$i.$FILEEXT"
 		if [ ! -e "$IMAGE" ]; then
 			echo "Cannot find $IMAGE file!"
