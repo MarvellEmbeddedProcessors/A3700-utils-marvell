@@ -21,7 +21,7 @@ Thus, this document will focus on the changes of DDR code in TIM stage only.
 
 3. A3700 DDR Porting tool usage
 -------------------------------
-This tool is located at /path_to_A3700_utils/ddr/tim_ddr/
+This tool is located at /path_to_A3700_utils/tim/ddr/
 
 	Usage: ddr_tool -i CFG_FILE -o OUTPUT_FILE [OPTION]
 	Read configuration from CFG_FILE and generate ddr reg list to OUTPUT_FILE

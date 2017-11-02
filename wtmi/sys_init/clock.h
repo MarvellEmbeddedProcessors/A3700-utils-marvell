@@ -88,18 +88,6 @@
 /* (GBE0 and GBE1 have reversed logic) */
 #define SB_ALL_CLK_ENABLE			(BIT19 | BIT20)
 
-enum clock_src {
-       TBG_A,
-       TBG_B
-};
-
-enum clock_line {
-       TBG_A_P = 0,
-       TBG_B_P = 1,
-       TBG_A_S = 2,
-       TBG_B_S = 3
-};
-
 /*
  * North Bridge Clocks
  */

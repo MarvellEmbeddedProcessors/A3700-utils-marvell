@@ -38,6 +38,8 @@ typedef short			s16;
 typedef char			s8;
 typedef char			byte;
 
+typedef int bool;
+
 #define	NULL			((void *)0)
 
 /* Errors */

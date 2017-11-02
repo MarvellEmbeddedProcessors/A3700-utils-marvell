@@ -19,7 +19,7 @@
 #include "bits.h"
 #include "regs.h"
 #include "io.h"
-#include "clock.h"
+#include "delay.h"
 #include "mbox.h"
 #include "efuse.h"
 

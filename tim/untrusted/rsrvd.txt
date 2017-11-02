@@ -4,6 +4,6 @@
 0x00000014	; Size of CRV2 package in bytes
 0x00000001	; Number of cores to release
 0x00000002	; Core_ID: 0 - AP0, 1 - AP1, 2 - CM3
-0x1FFF0000	; PC address for Core_ID above
+EXEC_ADDR	; PC address for Core_ID above
 0x5465726D	;Term
 0x00000008	; Size of this package in bytes

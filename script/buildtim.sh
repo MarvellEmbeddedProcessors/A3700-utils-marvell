@@ -5,7 +5,7 @@
 # $1 - trusted/non trusted (1/0)
 # $2 - Boot device (SPINOR/SPINAND/EMMCNORM/EMMCALT/SATA/UART)
 # $3 - Path to image text files
-# $4 - Clocks and DDR init data path
+# $4 - WTP path
 # $5 - Clocks preset
 # $6 - DDR topology map
 # $7 - Partition number
@@ -19,12 +19,16 @@
 DATE=`date +%d%m%Y`
 BOOT_DEV=$2
 IMGPATH=$3
-CLOCKSPATH=$4
+WTPPATH=$4
 PRESET=$5
 DDRTOPOLOGY=$6
 BOOTPART=$7
 DEBUG=$8
 OUTFILE=$9
+
+CLOCKSPATH=$WTPPATH/tim/ddr
+SYSINITPATH=$WTPPATH/wtmi/sys_init
+SYSINITLOADADDR=`sed -n '/. = 0x1fff[0-9|a-f]*/p' $SYSINITPATH/sys_init.ld | awk '{print $3}' | cut -d ';' -f 1`
 
 # All file names extention
 FILEEXT="txt"
@@ -351,7 +355,7 @@ if [ ! -e "$RSRVDFILE" ]; then
 	exit 1
 else
 	echo "Reserved Data:" >> $OUTFILE
-	cat $RSRVDFILE >> $OUTFILE
+	sed 's|EXEC_ADDR|'$SYSINITLOADADDR'|1' $RSRVDFILE >> $OUTFILE
 	echo "" >> $OUTFILE
 fi
 
@@ -459,7 +463,7 @@ if [ "$TRUSTED" = "0x00000001" ]; then
 		exit 1
 	else
 		echo "Reserved Data:" >> $TIMNOUTFILE
-		cat $RSRVD2FILE >> $TIMNOUTFILE
+		sed 's|EXEC_ADDR|'$SYSINITLOADADDR'|1' $RSRVD2FILE >> $TIMNOUTFILE
 		echo "" >> $TIMNOUTFILE
 	fi
 

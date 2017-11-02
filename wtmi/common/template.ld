@@ -4,7 +4,7 @@ ENTRY(_start)
 
 SECTIONS
 {
-  . = 0x1FFF0000;
+  . = LOAD_ADDR;
   .ro : {
     start.o (.text)
     *(.text)

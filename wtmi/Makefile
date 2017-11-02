@@ -1,77 +1,16 @@
-#/*
-# * ***************************************************************************
-# * Copyright (C) 2015 Marvell International Ltd.
-# * ***************************************************************************
-# * This program is free software: you can redistribute it and/or modify it
-# * under the terms of the GNU General Public License as published by the Free
-# * Software Foundation, either version 2 of the License, or any later version.
-# *
-# * This program is distributed in the hope that it will be useful,
-# * but WITHOUT ANY WARRANTY; without even the implied warranty of
-# * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# * GNU General Public License for more details.
-# *
-# * You should have received a copy of the GNU General Public License
-# * along with this program.  If not, see <http://www.gnu.org/licenses/>.
-# * ***************************************************************************
-#*/
-
 CROSS_CM3 ?= arm-linux-gnueabi-
 
-LD       = $(CROSS_CM3)ld
 CC       = $(CROSS_CM3)gcc
-AS       = $(CROSS_CM3)as
-OBJCOPY  = $(CROSS_CM3)objcopy
-OBJDUMP  = $(CROSS_CM3)objdump
-HOSTCC   = gcc
 
-RM       = @rm -rf
 MKDIR    = @mkdir -p
-CD       = @cd
-MV       = @mv
-CAT      = @cat
-PWD      = @pwd
-ECHO     = @echo
 
-CPUOPTS  = -mthumb -mcpu=cortex-m3 -mlittle-endian
-
-BINPATH  = build
-LDSCRIPT = wtmi.ld
-INCLUDE  = -I.
-
-BUILD_STRING	:=	$(shell git log -n 1 --pretty=format:"%h")
-LOCAL_VERSION_PATH	:=	..
-LOCAL_VERSION_FILE	:=	$(LOCAL_VERSION_PATH)/localversion
-LOCAL_VERSION_STRING	:=	$(shell cat $(LOCAL_VERSION_FILE))
-VERSION_STRING	:=	$(LOCAL_VERSION_STRING)-$(BUILD_STRING)
-
-CFLAGS   = -g -gdwarf-2 -Wall -fno-stack-protector $(INCLUDE) -Os $(CPUOPTS) -DVERSION=\"$(VERSION_STRING)\"
-CPPFLAGS =
-ASFLAGS  = -g --gdwarf-2 --warn $(INCLUDE) $(CPUOPTS)
-LDFLAGS  = -nostdlib -T $(LDSCRIPT) -Xlinker "--build-id=none"
-
-
-CSRC = $(wildcard *.c)
-ASRC = $(wildcard *.S)
-
-COBJ   = $(CSRC:.c=.o)
-AOBJ   = $(ASRC:.S=.o)
-
-WTMI_DDR_PATH = ../ddr/wtmi_ddr
-WTMI_DDR_LIB  = $(WTMI_DDR_PATH)/wtmi_ddr.a
-
-CLOCKSPRESET		?= CPU_800_DDR_800
-DDR_TOPOLOGY		?= 0
-
-ifeq ($(CLOCKSPRESET), CPU_600_DDR_600)
-		WTMI_CLOCK = 0
-else ifeq ($(CLOCKSPRESET), CPU_800_DDR_800)
-		WTMI_CLOCK = 1
-else ifeq ($(CLOCKSPRESET), CPU_1000_DDR_800)
-		WTMI_CLOCK = 2
-else ifeq ($(CLOCKSPRESET), CPU_1200_DDR_750)
-		WTMI_CLOCK = 3
-endif
+BINPATH		= build
+WTMI_PATH	= $(shell pwd)
+COMMON_PATH	= $(WTMI_PATH)/common
+WTMI_IMG	?= fuse/build/fuse.bin
+SYS_INIT_IMG	:= sys_init/build/sys_init.bin
+MULTI_IMG	:= $(BINPATH)/wtmi.bin
+WTMI_PAD_IMG	:= $(BINPATH)/wtmi_app_pad.bin
 
 COMPILER_FOUND  = $(shell which $(CC))
 TOOLCHAIN_CHECK = \
@@ -91,33 +30,26 @@ TOOLCHAIN_CHECK = \
 		exit 1; \
 	fi
 
-.SILENT:
-
-all: tools wtmiddr $(COBJ) $(AOBJ) $(BINPATH)
-	$(ECHO) "  LD    $(MAKECMDGOALS)"
-	$(CC) $(LDFLAGS)  $(AOBJ)  $(COBJ) $(WTMI_DDR_LIB) -o $(BINPATH)/wtmi.elf
-	$(OBJCOPY) -S -O binary $(BINPATH)/wtmi.elf $(BINPATH)/wtmi.bin
-	@if [ `uname -m` = "x86_64" ]; then $(OBJDUMP) -D -S $(BINPATH)/wtmi.elf > $(BINPATH)/wtmi.dis; fi
-
-%.o: %.c
-	$(ECHO) "  CC    $<"
-	$(CC) -c $(CFLAGS) $(CPPFLAGS) -o $@ $(subst .o,.c,$@)
-
-%.o: %.S
-	$(ECHO) "  AS    $<"
-	$(AS) $(ASFLAGS) -o $@ $(subst .o,.S,$@)
+all: tools $(BINPATH) $(WTMI_IMG) $(SYS_INIT_IMG)
+	cat $(WTMI_PAD_IMG) $(SYS_INIT_IMG) > $(MULTI_IMG)
 
 $(BINPATH):
 	@$(MKDIR) $(BINPATH)
 
+$(SYS_INIT_IMG): $(WTMI_PAD_IMG)
+	${MAKE} -C sys_init LOAD_OFFSET=$(shell wc -c < $(WTMI_PAD_IMG)) COMMON_PATH=$(COMMON_PATH) CROSS_CM3=$(CROSS_CM3)
+
+$(WTMI_PAD_IMG): $(WTMI_IMG)
+	cp -f $(WTMI_IMG) $(WTMI_PAD_IMG)
+	truncate -s %16 $(WTMI_PAD_IMG)
+
+$(WTMI_IMG):
+	${MAKE} -C fuse COMMON_PATH=$(COMMON_PATH) CROSS_CM3=$(CROSS_CM3)
+
 clean:
-	$(ECHO) "  CLEAN"
+	${Q}${MAKE} -C fuse clean COMMON_PATH=$(COMMON_PATH)
+	${Q}${MAKE} -C sys_init clean COMMON_PATH=$(COMMON_PATH)
 	@$(RM) -rf $(BINPATH)
-	@$(RM) -f *.o *.elf *.bin *dis
-	@${Q}${MAKE} --no-print-directory -C $(WTMI_DDR_PATH) clean
 
 tools:
 	@$(TOOLCHAIN_CHECK)
-
-wtmiddr:
-	${MAKE} -C $(WTMI_DDR_PATH) DEBUG=$(DEBUG) WTMI_CLOCK=$(WTMI_CLOCK) DDR_TOPOLOGY=$(DDR_TOPOLOGY)

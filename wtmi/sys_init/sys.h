@@ -32,12 +32,15 @@
 ***************************************************************************
 */
 
-#ifndef __IO_H_
-#define __IO_H_
+#ifndef __SYS_H_
+#define __SYS_H_
 
-#define readw(addr)		(*(volatile u16 *)(addr))
-#define readl(addr)		(*(volatile u32 *)(addr))
-#define writew(val, addr)	((*(volatile u16 *)(addr)) = (val))
-#define writel(val, addr)	((*(volatile u32 *)(addr)) = (val))
+#include "bits.h"
+#include "types.h"
+#include "regs.h"
+#include "io.h"
+#include "delay.h"
+#include "uart.h"
+#include "printf.h"
 
-#endif /* __IO_H_ */
+#endif /* __SYS_H_ */

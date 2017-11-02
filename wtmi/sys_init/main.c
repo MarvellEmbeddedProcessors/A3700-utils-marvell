@@ -33,11 +33,10 @@
 */
 
 #include "sys.h"
-#include "export.h"
 #include "apctl.h"
 #include "clock.h"
 #include "avs.h"
-#include "ddrcore/ddrcore.h"
+#include "ddr/ddrcore.h"
 
 #ifdef DEBUG
 #define ddr_debug printf
@@ -54,7 +53,7 @@ static void cm3_win1_remap(u32 win1_base){
 	writel(0x1FFF0001, 0xC000C710);
 }
 
-int wtmi_ddr_main(void)
+int sys_init_main(void)
 {
 	struct ddr_topology map;
 	struct ddr_init_para ddr_para;
@@ -166,3 +165,52 @@ int wtmi_ddr_main(void)
 
 	return 0;
 }
+
+/***************************************************************************************************
+  * exception_handler
+  *
+  * return: None
+ ***************************************************************************************************/
+static void exception_handler(int exception)
+{
+	return;
+}
+
+int main(int exception, char **dummy)
+{
+	u32     status;
+
+	if (exception != 0) {
+		exception_handler(exception);
+		return NO_ERROR;
+	}
+
+	/* Initialization stuff */
+	status = clock_init();
+	if (status)
+		return status;
+
+	status = uart_init(115200);
+	if (status)
+		return status;
+	init_printf(NULL, uart_putc);
+	printf("WTMI%s\n", VERSION);
+
+	/* Call ddrgen library */
+	sys_init_main();
+
+	/*
+	* Now WTMI running image(fuse.bin or dummy.bin or freeRTOS image) and
+	* system initialization image(sys_init.bin) are merged into one image -
+	* "wtmi.bin", WTMI running image is aligned up to 16 bytes to be the
+	* first part while sys_init.bin is the second part; wtmi.bin is loaded
+	* to SRAM start address 0x1fff0000. CM3 executing start address is
+	* sys_init.bin start address; after sys_init finishes the
+	* initialization work, PC address will jump back to WTMI runing image
+	* start address 0x1fff0000.
+	*/
+	__asm__ volatile("bl 0x1fff0000\n");
+
+	return NO_ERROR;
+}
+

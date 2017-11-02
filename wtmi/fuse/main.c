@@ -19,14 +19,10 @@
 #include "io.h"
 #include "regs.h"
 #include "bits.h"
-#include "printf.h"
-#include "uart.h"
 #include "mbox.h"
 #include "efuse.h"
-#include "clock.h"
-#include "wtmi.h"
-
-#include "../ddr/wtmi_ddr/export.h"
+#include "delay.h"
+#include "fuse.h"
 
 /***************************************************************************************************
   * exception_handler
@@ -147,15 +143,6 @@ int main(int exception, char **dummy)
 	status = clock_init();
 	if (status)
 		return status;
-
-	status = uart_init(115200);
-	if (status)
-		return status;
-	init_printf(NULL, uart_putc);
-	printf("WTMI%s\n", VERSION);
-
-	/* Call ddrgen library */
-	wtmi_ddr_main();
 
 	/* Mailbox commands handling loop */
 	while (1) {

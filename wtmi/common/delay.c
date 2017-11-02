@@ -20,7 +20,7 @@
 #include "io.h"
 #include "regs.h"
 #include "bits.h"
-#include "clock.h"
+#include "delay.h"
 
 #define CYCLES_PER_LOOP		3	/* see wait_ns() implementation for loop content */
 static u32 clk_ns, loop_ns;

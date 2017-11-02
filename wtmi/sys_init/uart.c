@@ -32,41 +32,50 @@
 ***************************************************************************
 */
 
-#ifndef __BITS_H_
-#define __BITS_H_
+#include "types.h"
+#include "io.h"
+#include "regs.h"
+#include "bits.h"
+#include "uart.h"
+#include "delay.h"
 
-#define NO_BIT          0x00000000
-#define BIT0            0x00000001
-#define BIT1            0x00000002
-#define BIT2            0x00000004
-#define BIT3            0x00000008
-#define BIT4            0x00000010
-#define BIT5            0x00000020
-#define BIT6            0x00000040
-#define BIT7            0x00000080
-#define BIT8            0x00000100
-#define BIT9            0x00000200
-#define BIT10           0x00000400
-#define BIT11           0x00000800
-#define BIT12           0x00001000
-#define BIT13           0x00002000
-#define BIT14           0x00004000
-#define BIT15           0x00008000
-#define BIT16           0x00010000
-#define BIT17           0x00020000
-#define BIT18           0x00040000
-#define BIT19           0x00080000
-#define BIT20           0x00100000
-#define BIT21           0x00200000
-#define BIT22           0x00400000
-#define BIT23           0x00800000
-#define BIT24           0x01000000
-#define BIT25           0x02000000
-#define BIT26           0x04000000
-#define BIT27           0x08000000
-#define BIT28           0x10000000
-#define BIT29           0x20000000
-#define BIT30           0x40000000
-#define BIT31           0x80000000
+#define UART_CLOCK_FREQ		25804800
 
-#endif /* __BITS_H_ */
+static void uart_set_baudrate(unsigned int baudrate)
+{
+	/*
+	 * calculate divider.
+	 * baudrate = clock / 16 / divider
+	 */
+	writel((UART_CLOCK_FREQ / baudrate / 16), MVEBU_UART0_BAUD_REG);
+	/* set Programmable Oversampling Stack to 0, UART defaults to 16X scheme */
+	writel(0, MVEBU_UART0_POSSR_REG);
+}
+
+int uart_init(unsigned int baudrate)
+{
+	uart_set_baudrate(baudrate);
+
+	/* reset FIFOs */
+	writel(BIT14 | BIT15, MVEBU_UART0_CTRL_REG);
+
+	wait_ns(1000);
+
+	/* No Parity, 1 Stop */
+	writel(0, MVEBU_UART0_CTRL_REG);
+
+	return 0;
+}
+
+void uart_putc(void *p, char c)
+{
+	if (c == '\n')
+		uart_putc(NULL, '\r');
+
+	while (readl(MVEBU_UART0_STATUS_REG) & BIT11)
+		;
+
+	writel(c, MVEBU_UART0_TX_REG);
+
+	return;
+}
