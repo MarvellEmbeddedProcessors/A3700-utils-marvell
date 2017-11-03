@@ -455,6 +455,19 @@ if [ "$TRUSTED" = "0x00000001" ]; then
 		let i=i+1
 	done
 
+	# Replace partition number in the output for EMMC
+	if [[ "$BOOT_DEV" = "EMMCNORM" || "$BOOT_DEV" = "EMMCALT" ]]; then
+		mv $TIMNOUTFILE $TIMNOUTFILE.temp
+		while IFS='' read -r line; do
+			if [[ "$line" == *"Partition Number:"* ]]; then
+				echo "Partition Number:               $EMMCPART" >> $TIMNOUTFILE
+			else
+				echo "$line" >> $TIMNOUTFILE
+			fi
+		done < $TIMNOUTFILE.temp
+		rm $TIMNOUTFILE.temp
+	fi
+
 	# Second reserved area
 
 	RSRVD2FILE="$IMGPATH/$RSRVD2PREF.$FILEEXT"
@@ -482,19 +495,5 @@ if [ "$TRUSTED" = "0x00000001" ]; then
 		exit 0
 	fi
 fi
-
-# Replace partition number in the output for EMMC
-if [[ "$BOOT_DEV" = "EMMCNORM" || "$BOOT_DEV" = "EMMCALT" ]]; then
-	mv $TIMNOUTFILE $TIMNOUTFILE.temp
-	while IFS='' read -r line; do
-		if [[ "$line" == *"Partition Number:"* ]]; then
-			echo "Partition Number:               $EMMCPART" >> $TIMNOUTFILE
-		else
-			echo "$line" >> $TIMNOUTFILE
-		fi
-	done < $TIMNOUTFILE.temp
-	#rm $TIMNOUTFILE.temp
-fi
-
 
 exit 0
