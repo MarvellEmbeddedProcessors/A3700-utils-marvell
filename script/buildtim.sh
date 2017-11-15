@@ -460,7 +460,7 @@ if [ "$TRUSTED" = "0x00000001" ]; then
 		mv $TIMNOUTFILE $TIMNOUTFILE.temp
 		while IFS='' read -r line; do
 			if [[ "$line" == *"Partition Number:"* ]]; then
-				echo "Partition Number:               $EMMCPART" >> $TIMNOUTFILE
+				echo "Partition Number:               $BOOTPART" >> $TIMNOUTFILE
 			else
 				echo "$line" >> $TIMNOUTFILE
 			fi
