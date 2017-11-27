@@ -1,22 +1,69 @@
-/******************************************************************************
- *
- *  (C)Copyright 2005 - 2009 Marvell. All Rights Reserved.
- *  
- *  THIS IS UNPUBLISHED PROPRIETARY SOURCE CODE OF MARVELL.
- *  The copyright notice above does not evidence any actual or intended 
- *  publication of such source code.
- *  This Module contains Proprietary Information of Marvell and should be
- *  treated as Confidential.
- *  The information in this file is provided for the exclusive use of the 
- *  licensees of Marvell.
- *  Such users have the right to use, modify, and incorporate this code into 
- *  products for purposes authorized by the license agreement provided they 
- *  include this notice and the associated copyright notice with any such
- *  product. 
- *  The information in this file is provided "AS IS" without warranty.
- *
- ******************************************************************************/
-  /********************************************************************************
+/*******************************************************************************
+Copyright (C) 2017 Marvell International Ltd.
+
+This software file (the "File") is owned and distributed by Marvell
+International Ltd. and/or its affiliates ("Marvell") under the following
+alternative licensing terms.  Once you have made an election to distribute the
+File under one of the following license alternatives, please (i) delete this
+introductory statement regarding license alternatives, (ii) delete the three
+license alternatives that you have not elected to use and (iii) preserve the
+Marvell copyright notice above.
+
+********************************************************************************
+Marvell Commercial License Option
+
+If you received this File from Marvell and you have entered into a commercial
+license agreement (a "Commercial License") with Marvell, the File is licensed
+to you under the terms of the applicable Commercial License.
+
+********************************************************************************
+Marvell GPL License Option
+
+This program is free software: you can redistribute it and/or modify it
+under the terms of the GNU General Public License as published by the Free
+Software Foundation, either version 2 of the License, or any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+********************************************************************************
+Marvell GNU General Public License FreeRTOS Exception
+
+If you received this File from Marvell, you may opt to use, redistribute and/or
+modify this File in accordance with the terms and conditions of the Lesser
+General Public License Version 2.1 plus the following FreeRTOS exception.
+An independent module is a module which is not derived from or based on
+FreeRTOS.
+Clause 1:
+Linking FreeRTOS statically or dynamically with other modules is making a
+combined work based on FreeRTOS. Thus, the terms and conditions of the GNU
+General Public License cover the whole combination.
+As a special exception, the copyright holder of FreeRTOS gives you permission
+to link FreeRTOS with independent modules that communicate with FreeRTOS solely
+through the FreeRTOS API interface, regardless of the license terms of these
+independent modules, and to copy and distribute the resulting combined work
+under terms of your choice, provided that:
+1. Every copy of the combined work is accompanied by a written statement that
+details to the recipient the version of FreeRTOS used and an offer by yourself
+to provide the FreeRTOS source code (including any modifications you may have
+made) should the recipient request it.
+2. The combined work is not itself an RTOS, scheduler, kernel or related
+product.
+3. The independent modules add significant and primary functionality to
+FreeRTOS and do not merely extend the existing functionality already present in
+FreeRTOS.
+Clause 2:
+FreeRTOS may not be used for any competitive or comparative purpose, including
+the publication of any form of run time or compile time metric, without the
+express permission of Real Time Engineers Ltd. (this is the norm within the
+industry and is intended to ensure information accuracy).
+
+********************************************************************************
 Marvell BSD License Option
 
 If you received this File from Marvell, you may opt to use, redistribute and/or
