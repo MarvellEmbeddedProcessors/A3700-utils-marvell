@@ -21,6 +21,19 @@
 
 #define APPLICATION_CPU_REGS_BASE	(0xC0000000)
 #define SECURE_CPU_REGS_BASE		(0x40000000)
+#define SECURE_CPU_DDR_BASE		(0x60000000)
+
+/* SYS */
+/*
+* This memory region is allocated as part of ATF PSCI domain, which
+* is used for the reserved data through system suspend cycle.
+* DDR tuning uses part of the memory to store tuning results
+* at DDR_TUNE_RESULT_MEM_BASE
+*/
+#define SYS_RSRV_MAILBOX_BASE (SECURE_CPU_DDR_BASE + 0x04000400)
+
+/* DDR */
+#define DDR_TUNE_RESULT_MEM_BASE (SYS_RSRV_MAILBOX_BASE + 0x32)
 
 /* Clocks */
 #define MVEBU_NORTH_CLOCK_REGS_BASE	(APPLICATION_CPU_REGS_BASE + 0x13000)

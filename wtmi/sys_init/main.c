@@ -37,6 +37,7 @@
 #include "clock.h"
 #include "avs.h"
 #include "ddr/ddrcore.h"
+#include <string.h>
 
 #if DEBUG
 #define ddr_debug printf
@@ -53,16 +54,46 @@ static void cm3_win1_remap(u32 win1_base){
 	writel(0x1FFF0001, 0xC000C710);
 }
 
+static u32 do_checksum32(u32 *start, u32 len)
+{
+	u32 sum = 0;
+	u32 *startp = start;
+
+	do {
+		sum += *startp;
+		startp++;
+		len -= 4;
+	} while (len > 0);
+
+	return sum;
+}
+
+static int sys_check_warm_boot(void)
+{
+	/* warm boot bit is stored in BIT0 of 0xC001404C */
+	if (readl(0xC001404C) & BIT0)
+		return 1;
+
+	return 0;
+}
+
 int sys_init_main(void)
 {
 	struct ddr_topology map;
 	struct ddr_init_para ddr_para;
-	struct ddr_init_result tune_result;
-	u32 ddr_type = DDR3;
+	struct ddr_init_result *result_in_dram, result_in_sram;
+	u32 ddr_type = DDR3, chksum_in_dram = 0;
 
 	printf("ENTER init_ddrgen\n");
 
-	ddr_para.warm_boot = 0;
+	result_in_dram = (struct ddr_init_result *)(DDR_TUNE_RESULT_MEM_BASE);
+
+	ddr_para.warm_boot = sys_check_warm_boot();
+	if (ddr_para.warm_boot) {
+		chksum_in_dram = readl(DDR_TUNE_RESULT_MEM_BASE + sizeof(struct ddr_init_result));
+		if (chksum_in_dram != do_checksum32(result_in_dram, sizeof(struct ddr_init_result)))
+			printf("DDR tuning result checksum ERROR!\n");
+	}
 	ddr_para.log_level = LOG_LEVEL_NONE;
 	ddr_para.flags = FLAG_REGS_DUMP_NONE;
 
@@ -159,7 +190,23 @@ int sys_init_main(void)
 
 	ddr_para.clock_init = setup_clock_tree;
 	ddr_para.speed = get_ddr_clock();
-	init_ddr(ddr_para, &tune_result);
+
+	/*
+	* Use reserved settings if warm boot is found, otherwise, because ddr init process
+	* may access DRAM memory, store the result in sram first, and copy to reserved dram
+	* after init_ddr function
+	*/
+	if (ddr_para.warm_boot)
+		init_ddr(ddr_para, result_in_dram);
+	else
+		init_ddr(ddr_para, &result_in_sram);
+
+	/* Copy tuning result to reserved memory */
+	if (!ddr_para.warm_boot) {
+		memcpy(result_in_dram, &result_in_sram, sizeof(struct ddr_init_result));
+		writel(do_checksum32(&result_in_sram, sizeof(struct ddr_init_result)),
+			DDR_TUNE_RESULT_MEM_BASE + sizeof(struct ddr_init_result));
+	}
 
 	kick_ap();
 
