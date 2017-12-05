@@ -69,7 +69,7 @@ enum ddr_speedbin{
 };
 
 struct ddr_topology {
-	enum ddr_speedbin spped_bin;
+	enum ddr_speedbin speed_bin;
 	unsigned int bus_width;
 	unsigned int cs_num;
 	struct ddr_cs_data cs[MAX_CS_NUM];
