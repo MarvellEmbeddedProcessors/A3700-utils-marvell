@@ -105,11 +105,13 @@ all:  $(COBJ) $(AOBJ) $(BINPATH)
 
 %.o: %.c
 	$(ECHO) "  CC    $<"
-	$(CC) -c $(CFLAGS) $(CPPFLAGS) -o $@ $(subst .o,.c,$@)
+	$(CC) -MMD -MP -c $(CFLAGS) $(CPPFLAGS) -o $@ $(subst .o,.c,$@)
 
 %.o: %.S
 	$(ECHO) "  AS    $<"
 	$(AS) $(ASFLAGS) -o $@ $(subst .o,.S,$@)
+
+-include $(COBJ:.o=.d)
 
 $(BINPATH):
 	@$(MKDIR) $(BINPATH)
