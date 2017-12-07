@@ -59,7 +59,9 @@ all: $(COBJ)
 
 %.o: %.c
 	$(ECHO) "  CC    $<"
-	$(CC) -c $(CFLAGS) $(CPPFLAGS) -o $@ $(subst .o,.c,$@)
+	$(CC) -MMD -MP -c $(CFLAGS) $(CPPFLAGS) -o $@ $(subst .o,.c,$@)
+
+-include $(COBJ:.o=.d)
 
 clean:
 	$(ECHO) "  DDRGEN CLEAN"
