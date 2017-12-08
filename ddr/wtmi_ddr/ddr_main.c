@@ -40,10 +40,10 @@
 #include "ddrcore/ddrcore.h"
 #include <string.h>
 
-#ifdef DEBUG
+#if DEBUG
 #define ddr_debug printf
 #else
-#define ddr_debug(..)
+#define ddr_debug(...)
 #endif
 
 /* DDR topology file defines the memory size by MiB. */
