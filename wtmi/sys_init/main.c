@@ -38,10 +38,10 @@
 #include "avs.h"
 #include "ddr/ddrcore.h"
 
-#ifdef DEBUG
+#if DEBUG
 #define ddr_debug printf
 #else
-#define ddr_debug(..)
+#define ddr_debug(...)
 #endif
 
 /* remap 0xa0000000 to first 512M of CS1 */
