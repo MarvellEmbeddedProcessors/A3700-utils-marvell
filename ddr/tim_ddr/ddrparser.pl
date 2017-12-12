@@ -30,7 +30,12 @@ sub parse_dram_data
 
 	# to change some specific register, we could add "-r" option like below:
 	# ./ddr_tool -i DDR_TOPOLOGY_0.txt -o ddr_static.txt -r 0xC0000380=0x0007A120
-	system("${path}/ddr_tool -i $file_name -o ${path}/ddr_static.txt");
+	# ddr_type	DDR3=0, DDR4=1
+	if ($ddr_type eq "0") {
+		system("${path}/ddr3_tool -i $file_name -o ${path}/ddr_static.txt");
+	} elsif ($ddr_type eq "1") {
+		system("${path}/ddr4_tool -i $file_name -o ${path}/ddr_static.txt");
+	}
 
 	unlink("${path}/clocks_ddr.txt");
 	# ddr_type	DDR3=0, DDR4=1

@@ -13,14 +13,11 @@ ddr_type=0
 ddr_cs_mask=3
 
 #DDR3_1600K
-ddr_speedbin_index=25
+ddr_speedbin_index=12
 
 #16BIT
 ddr_bus_width_index=2
 
-#8Gbits (512MB*2)
-ddr_mem_size_index=4
-
-#800M
-ddr_mem_freq_index=3
+#4Gbits (512MB)
+ddr_mem_size_index=3
 
