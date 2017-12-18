@@ -35,6 +35,8 @@
 #ifndef __SYS_H_
 #define __SYS_H_
 
+#include "autoconf.h"
+
 #include "bits.h"
 #include "types.h"
 #include "regs.h"

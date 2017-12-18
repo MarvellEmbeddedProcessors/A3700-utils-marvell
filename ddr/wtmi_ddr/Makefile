@@ -50,12 +50,54 @@ CSRC = $(wildcard *.c)
 CSRC += $(wildcard ddrcore/*.c)
 COBJ   = $(CSRC:.c=.o)
 
-CFLAGS += -DDEBUG=$(DEBUG) -DWTMI_CLOCK=$(WTMI_CLOCK) -DDDR_TOPOLOGY=$(DDR_TOPOLOGY)
+CFG_HEADER = autoconf.h
+
+define filechk
+	@set -e;				\
+	echo '  CHK     $@';		\
+	mkdir -p $(dir $@);			\
+	$(filechk_$(1)) > $@.tmp;		\
+	if [ -r $@ ] && cmp -s $@ $@.tmp; then	\
+		rm -f $@.tmp;			\
+	else					\
+		echo '  UPD     $@';	\
+		mv -f $@.tmp $@;		\
+	fi
+endef
+
+# FIX-ME:
+# replace the relative path to the DDR topology
+# files and scripts
+DDR_TOPOLOGY_PATH=../../ddr/tim_ddr
+DDR_TOPOLOGY_FILE=$(DDR_TOPOLOGY_PATH)/DDR_TOPOLOGY_$(DDR_TOPOLOGY).txt
+
+SCRIPT_PATH=../../script
+GET_DDR_PARAMS=$(SCRIPT_PATH)/getddrparams.sh
+
+CONFIG_DDR_TYPE  := $(shell $(GET_DDR_PARAMS) $(DDR_TOPOLOGY_FILE) ddr_type)
+CONFIG_BUS_WIDTH := $(shell $(GET_DDR_PARAMS) $(DDR_TOPOLOGY_FILE) ddr_bus_width_index)
+CONFIG_SPEED_BIN := $(shell $(GET_DDR_PARAMS) $(DDR_TOPOLOGY_FILE) ddr_speedbin_index)
+CONFIG_CS_NUM    := $(shell $(GET_DDR_PARAMS) $(DDR_TOPOLOGY_FILE) ddr_cs_mask)
+CONFIG_DEV_CAP   := $(shell $(GET_DDR_PARAMS) $(DDR_TOPOLOGY_FILE) ddr_mem_size_index)
+
+define filechk_autoconf.h
+	(echo \#define DEBUG $(DEBUG);\
+	echo \#define WTMI_CLOCK $(WTMI_CLOCK);\
+	echo \#define CONFIG_DDR_TYPE $(CONFIG_DDR_TYPE);\
+	echo \#define CONFIG_BUS_WIDTH $(CONFIG_BUS_WIDTH);\
+	echo \#define CONFIG_SPEED_BIN $(CONFIG_SPEED_BIN);\
+	echo \#define CONFIG_CS_NUM $(CONFIG_CS_NUM);\
+	echo \#define CONFIG_DEV_CAP $(CONFIG_DEV_CAP);)
+endef
 
 .SILENT:
+.PHONY: $(CFG_HEADER)
 
-all: $(COBJ)
+all: $(CFG_HEADER) $(COBJ)
 	$(AR) -r wtmi_ddr.a $(COBJ)
+
+$(CFG_HEADER):
+	$(call filechk,autoconf.h)
 
 %.o: %.c
 	$(ECHO) "  CC    $<"
@@ -65,4 +107,5 @@ all: $(COBJ)
 
 clean:
 	$(ECHO) "  DDRGEN CLEAN"
-	@$(RM) -f *.o *.a ddrcore/*.o
+	@$(RM) -f autoconf.h *.o *.a ddrcore/*.o
+

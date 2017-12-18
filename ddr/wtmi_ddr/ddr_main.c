@@ -50,6 +50,17 @@
 /* This macro is used to covert the size into Bytes. */
 #define _MB(sz)	((sz) << 20)
 
+/* Armada37xx always works with a DDR bus of 16-bits. */
+#define MC_BUS_WIDTH				16
+/*
+ * DRAM size per each chip select is calculated
+ * according to the device capacity and device
+ * bus-width.
+ * Working with the device of 8-bits, DRAM size
+ * on a single chip select should be doubled.
+ */
+#define DDR_CS_CAP(dev_sz, dev_bw)	(dev_sz) * (MC_BUS_WIDTH / (dev_bw))
+
 /*
  * CM3 has two windows for DRAM address decoding.
  * It supports up to 1.5GB memory address translation.
@@ -119,9 +130,9 @@ int wtmi_ddr_main(void)
 	struct ddr_topology map;
 	struct ddr_init_para ddr_para;
 	struct ddr_init_result *result_in_dram, result_in_sram;
-	u32 ddr_type = DDR3, chksum_in_dram = 0;
+	u32 chksum_in_dram = 0;
 
-	printf("ENTER init_ddrgen\n");
+	printf("WTMI: system early-init\n");
 
 	result_in_dram = (struct ddr_init_result *)(DDR_TUNE_RESULT_MEM_BASE);
 
@@ -131,87 +142,46 @@ int wtmi_ddr_main(void)
 		if (chksum_in_dram != do_checksum32((u32 *)result_in_dram, sizeof(struct ddr_init_result)))
 			printf("DDR tuning result checksum ERROR!\n");
 	}
-	ddr_para.log_level = LOG_LEVEL_NONE;
-	ddr_para.flags = FLAG_REGS_DUMP_NONE;
 
-	ddr_debug("DDR_TOPOLOGY is %d :", DDR_TOPOLOGY);
-	/* TOPOLOGY was set in the compile parametr */
-	switch(DDR_TOPOLOGY){
-		case 0:
-			ddr_debug("	DDR3, 1CS 512M\n");
-			ddr_type = DDR3;
-			map.bus_width = 16;
-			map.cs_num = 1;
-			map.cs[0].group_num = 0;
-			map.cs[0].bank_num = 8;
-			map.cs[0].capacity = 512;
-			break;
-
-		case 1:
-			ddr_debug("	DDR4, 1CS 512M\n");
-			ddr_type = DDR4;
-			map.bus_width = 16;
-			map.cs_num = 1;
-			map.cs[0].group_num = 0;
-			map.cs[0].bank_num = 8;
-			map.cs[0].capacity = 512;
-			break;
-
-		case 2:
-			ddr_debug("	DDR3, 2CS 512M + 512M\n");
-			ddr_type = DDR3;
-			map.bus_width = 16;
-			map.cs_num = 2;
-			map.cs[0].group_num = 0;
-			map.cs[0].bank_num = 8;
-			map.cs[0].capacity = 512;
-
-			map.cs[1].group_num = 0;
-			map.cs[1].bank_num = 8;
-			map.cs[1].capacity = 512;
-			break;
-
-		case 3:
-			ddr_debug("	DDR4, 2CS 2G + 2G\n");
-			ddr_type = DDR4;
-			map.bus_width = 16;
-			map.cs_num = 2;
-			map.cs[0].group_num = 0;
-			map.cs[0].bank_num = 8;
-			map.cs[0].capacity = 2048;
-
-			/* do remap for DDR4 CS1 */
-			map.cs[1].group_num = 0;
-			map.cs[1].bank_num = 8;
-			map.cs[1].capacity = 2048;
-			break;
-
-		case 4:
-			ddr_debug("	DDR3, 1CS 1G\n");
-			ddr_type = DDR3;
-			map.bus_width = 16;
-			map.cs_num = 1;
-			map.cs[0].group_num = 0;
-			map.cs[0].bank_num = 8;
-			map.cs[0].capacity = 1024;
-			break;
-
-		default:
-			printf("ERROR: unsupported DDR_TOPOLOGY\n");
-			break;
+	map.bus_width       = CONFIG_BUS_WIDTH;
+	map.cs_num          = CONFIG_CS_NUM;
+	map.cs[0].group_num = 0;
+	map.cs[0].bank_num  = 8;
+	map.cs[0].capacity  = DDR_CS_CAP(CONFIG_DEV_CAP, CONFIG_BUS_WIDTH);
+	if (map.cs_num > 1) {
+		/* Assume a symetric topology applied on both CS */
+		map.cs[1].group_num = 0;
+		map.cs[1].bank_num  = 8;
+		map.cs[1].capacity  = DDR_CS_CAP(CONFIG_DEV_CAP, CONFIG_BUS_WIDTH);
 	}
 
-	ddr_debug("WTMI_CLOCK=%d\n", WTMI_CLOCK);
-	set_clock_preset(WTMI_CLOCK);/* WTMI_CLOCK was set in the compile parametr */
+	ddr_debug("\nDDR topology parameters:\n");
+	ddr_debug("========================\n");
+	ddr_debug("ddr type               DDR%d\n", CONFIG_DDR_TYPE+3);
+	ddr_debug("ddr speedbin           %d\n", CONFIG_SPEED_BIN);
+	ddr_debug("bus width              %d-bits\n", map.bus_width);
+	ddr_debug("cs num                 %d\n", map.cs_num);
+	ddr_debug("  cs[0] - group num    %d\n", map.cs[0].group_num);
+	ddr_debug("  cs[0] - bank num     %d\n", map.cs[0].bank_num);
+	ddr_debug("  cs[0] - capacity     %dMiB\n", map.cs[0].capacity);
+	if (map.cs_num > 1) {
+		ddr_debug("  cs[1] - group num    %d\n", map.cs[1].group_num);
+		ddr_debug("  cs[1] - bank num     %d\n", map.cs[1].bank_num);
+		ddr_debug("  cs[1] - capacity     %dMiB\n", map.cs[1].capacity);
+	}
 
+	/* WTMI_CLOCK was set in the compile parametr */
+	set_clock_preset(WTMI_CLOCK);
 	init_avs(get_cpu_clock());
 
-	set_ddr_type(ddr_type);
-
+	set_ddr_type(CONFIG_DDR_TYPE);
 	set_ddr_topology_parameters(map);
 
+	ddr_para.log_level  = LOG_LEVEL_NONE;
+	ddr_para.flags      = FLAG_REGS_DUMP_NONE;
+
 	ddr_para.clock_init = setup_clock_tree;
-	ddr_para.speed = get_ddr_clock();
+	ddr_para.speed      = get_ddr_clock();
 
 	/*
 	 * Both CM3's DRAM address decoding windows are
