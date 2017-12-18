@@ -48,6 +48,11 @@
 */
 #define SYS_RSRV_MAILBOX_BASE (SECURE_CPU_DDR_BASE + 0x04000400)
 
+/*  rWTM Address Decoding */
+#define CM3_WIN_CONROL(win)		(APPLICATION_CPU_REGS_BASE + 0xC700 + ((win) << 4))
+#define CM3_WIN_BASE(win)		(APPLICATION_CPU_REGS_BASE + 0xC704 + ((win) << 4))
+#define CM3_WIN_REMAP_LOW(win)	(APPLICATION_CPU_REGS_BASE + 0xC708 + ((win) << 4))
+
 /* DDR */
 #define DDR_TUNE_RESULT_MEM_BASE (SYS_RSRV_MAILBOX_BASE + 0x32)
 

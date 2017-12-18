@@ -56,4 +56,7 @@ typedef int bool;
 #define ERR_BAD_CONFIGURATION	0x0003
 #define ERR_TIMEOUT		0x0004
 
+#define MIN(a, b)   ((a) < (b) ? (a) : (b))
+#define MAX(a, b)   ((a) > (b) ? (a) : (b))
+
 #endif /* __TYPES_H_ */

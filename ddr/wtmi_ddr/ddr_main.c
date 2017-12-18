@@ -46,13 +46,49 @@
 #define ddr_debug(..)
 #endif
 
-/* remap 0xa0000000 to first 512M of CS1 */
-static void cm3_win1_remap(u32 win1_base){
-	writel(0xFFFFFFFE, 0xC000C710);
-	writel(0x1FFF0000, 0xC000C710);
-	writel(0xa0000000, 0xC000C714);
-	writel(win1_base, 0xC000C718);
-	writel(0x1FFF0001, 0xC000C710);
+/* DDR topology file defines the memory size by MiB. */
+/* This macro is used to covert the size into Bytes. */
+#define _MB(sz)	((sz) << 20)
+
+/*
+ * CM3 has two windows for DRAM address decoding.
+ * It supports up to 1.5GB memory address translation.
+ */
+#define CM3_DRAM_WIN0_ID		0
+#define CM3_DRAM_WIN0_BASE		0x60000000
+#define CM3_DRAM_WIN0_SZ_MAX	0x40000000 /* 1024MB */
+#define CM3_DRAM_WIN1_ID		1
+#define CM3_DRAM_WIN1_BASE		0xA0000000
+#define CM3_DRAM_WIN1_SZ_MAX	0x20000000 /* 512MB */
+
+/*
+ * This function is used for setting the remap address
+ * for a specific decode window.
+ * The window is suppose to translate the destination
+ * address into the offset to the target unit against
+ * the window's base address. With address remapping,
+ * the window is able to redirected the access to the
+ * target unit with the additional offset of the remap
+ * address.
+ *
+ * It's useful when CM3 need to access a high memory
+ * address with the limited window size.
+ *
+ */
+static void set_cm3_win_remap(u32 win, u32 remap_addr)
+{
+	u32 reg;
+
+	/* Disable the window before configuring it. */
+	reg = readl(CM3_WIN_CONROL(win));
+	reg &= ~BIT0;
+	writel(reg, CM3_WIN_CONROL(win));
+
+	writel((remap_addr & 0xFFFF0000), CM3_WIN_REMAP_LOW(win));
+
+	/* Re-enable the window. */
+	reg |= BIT0;
+	writel(reg, CM3_WIN_CONROL(win));
 }
 
 static u32 do_checksum32(u32 *start, u32 len)
@@ -109,8 +145,6 @@ int wtmi_ddr_main(void)
 			map.cs[0].group_num = 0;
 			map.cs[0].bank_num = 8;
 			map.cs[0].capacity = 512;
-			ddr_para.cs_wins[0].base = 0x60000000;
-			ddr_para.cs_wins[0].size = 512;
 			break;
 
 		case 1:
@@ -121,8 +155,6 @@ int wtmi_ddr_main(void)
 			map.cs[0].group_num = 0;
 			map.cs[0].bank_num = 8;
 			map.cs[0].capacity = 512;
-			ddr_para.cs_wins[0].base = 0x60000000;
-			ddr_para.cs_wins[0].size = 512;
 			break;
 
 		case 2:
@@ -133,14 +165,10 @@ int wtmi_ddr_main(void)
 			map.cs[0].group_num = 0;
 			map.cs[0].bank_num = 8;
 			map.cs[0].capacity = 512;
-			ddr_para.cs_wins[0].base = 0x60000000;
-			ddr_para.cs_wins[0].size = 512;
 
 			map.cs[1].group_num = 0;
 			map.cs[1].bank_num = 8;
 			map.cs[1].capacity = 512;
-			ddr_para.cs_wins[1].base = 0x80000000;
-			ddr_para.cs_wins[1].size = 512;
 			break;
 
 		case 3:
@@ -151,16 +179,11 @@ int wtmi_ddr_main(void)
 			map.cs[0].group_num = 0;
 			map.cs[0].bank_num = 8;
 			map.cs[0].capacity = 2048;
-			ddr_para.cs_wins[0].base = 0x60000000;
-			ddr_para.cs_wins[0].size = 1024;
 
 			/* do remap for DDR4 CS1 */
 			map.cs[1].group_num = 0;
 			map.cs[1].bank_num = 8;
 			map.cs[1].capacity = 2048;
-			cm3_win1_remap(0x80000000);/* base of CS1, remap to 0xa0000000 */
-			ddr_para.cs_wins[1].base = 0xa0000000;
-			ddr_para.cs_wins[1].size = 512;
 			break;
 
 		case 4:
@@ -171,8 +194,6 @@ int wtmi_ddr_main(void)
 			map.cs[0].group_num = 0;
 			map.cs[0].bank_num = 8;
 			map.cs[0].capacity = 1024;
-			ddr_para.cs_wins[0].base = 0x60000000;
-			ddr_para.cs_wins[0].size = 1024;
 			break;
 
 		default:
@@ -191,6 +212,105 @@ int wtmi_ddr_main(void)
 
 	ddr_para.clock_init = setup_clock_tree;
 	ddr_para.speed = get_ddr_clock();
+
+	/*
+	 * Both CM3's DRAM address decoding windows are
+	 * enabled by default. These two windows has a
+	 * linear address mapping to the DDR chips. The
+	 * memory address translation to the different
+	 * DDR chip is transparent to CM3 processor. So
+	 * that there is no need to use the dedicated
+	 * window to the specific DDR chip.
+	 *
+	 * Single CS:
+	 * Use only DRAM_WIN0 for address translation.
+	 * Keep the default settings for DRAM_WIN0.
+	 * Up to CM3_DRAM_WIN0_SZ_MAX (1GB) can be used
+	 * by DDR training for memory test.
+	 *
+	 * Dual CS:
+	 * - DRAM_WIN0 will translate the address for
+	 *   both DDR chips if the chip's capacity is
+	 *   less than CM3_DRAM_WIN0_SZ_MAX (1GB).
+	 *   DRAM_WIN1 will translate the rest address
+	 *   continueously.
+	 * - DRAM_WIN1 has to be remapped to the start
+	 *   address of the second chip if the chip's
+	 *   capacity is more than CM3_DRAM_WIN0_SZ_MAX
+	 *   (1GB). In this case, only the first 1GB on
+	 *   CS1 is available for the memory test while
+	 *   only first 512MB on CS2 is available for
+	 *   the memory test.
+	 *
+	 */
+	ddr_para.cs_wins[0].base = CM3_DRAM_WIN0_BASE;
+	ddr_para.cs_wins[0].size =\
+		(_MB(map.cs[0].capacity) > CM3_DRAM_WIN0_SZ_MAX) ?\
+		CM3_DRAM_WIN0_SZ_MAX : _MB(map.cs[0].capacity);
+
+	if (map.cs_num > 1) {
+		if (_MB(map.cs[0].capacity) < CM3_DRAM_WIN0_SZ_MAX) {
+			ddr_para.cs_wins[1].base = CM3_DRAM_WIN0_BASE +\
+				_MB(map.cs[0].capacity);
+			/*
+			 * Though both DRAM_WIN0 and DRAM_WIN1 are used for
+			 * CS1's address translation, the memory space on
+			 * CS1 may not be fully provisioned if the total
+			 * memory size is larger than the combined maximum
+			 * size of both windows.
+			 */
+			ddr_para.cs_wins[1].size = MIN(_MB(map.cs[1].capacity),\
+				(CM3_DRAM_WIN0_SZ_MAX + CM3_DRAM_WIN1_SZ_MAX -\
+				_MB(map.cs[0].capacity)));
+
+			/*
+			 * Remap DRAM_WIN1 to the maximum address of DRAM_WIN0
+			 * so that it can continue the translation of the on-
+			 * going addresses which is beyond DRAM_WIN0.
+			 */
+			set_cm3_win_remap(CM3_DRAM_WIN1_ID, CM3_DRAM_WIN0_SZ_MAX);
+		} else {
+			ddr_para.cs_wins[1].base = CM3_DRAM_WIN1_BASE;
+			/*
+			 * In case of enlarging the size of DRAM_WIN1, CS1's
+			 * accessible memory size cannot exceed its maximum
+			 * size.
+			 */
+			ddr_para.cs_wins[1].size = MIN(_MB(map.cs[1].capacity),\
+				CM3_DRAM_WIN1_SZ_MAX);
+
+			/*
+			 * DRAM_WIN0 is fully occupied by CS0. Even it cannot
+			 * cover the entire address space on CS0, DRAM_WIN1
+			 * has to be remapped to the start address of CS1 in
+			 * order to guarantee at least 512MB accessible memory
+			 * on CS1.
+			 */
+			set_cm3_win_remap(CM3_DRAM_WIN1_ID, _MB(map.cs[0].capacity));
+		}
+	}
+
+	ddr_debug("\nDRAM windows:\n");
+	ddr_debug("=============\n");
+	ddr_debug("WIN[0] - base addr     0x%08x\n", CM3_DRAM_WIN0_BASE);
+	ddr_debug("WIN[0] - size          0x%08x\n", CM3_DRAM_WIN0_SZ_MAX);
+	if (map.cs_num > 1) {
+		ddr_debug("WIN[1] - base addr     0x%08x\n", CM3_DRAM_WIN1_BASE);
+		ddr_debug("WIN[1] - size          0x%08x\n", CM3_DRAM_WIN1_SZ_MAX);
+		if (_MB(map.cs[0].capacity) > CM3_DRAM_WIN0_SZ_MAX)
+			ddr_debug("WIN[1] - remap addr    0x%08x\n",
+				_MB(map.cs[0].capacity));
+	}
+
+	ddr_debug("\nmemory test region:\n");
+	ddr_debug("===================\n");
+	ddr_debug("CS[0]                  0x%08x - 0x%08x\n",
+		ddr_para.cs_wins[0].base,
+		ddr_para.cs_wins[0].base + ddr_para.cs_wins[0].size - 1);
+	if (map.cs_num > 1)
+		ddr_debug("CS[1]                  0x%08x - 0x%08x\n",
+			ddr_para.cs_wins[1].base,
+			ddr_para.cs_wins[1].base + ddr_para.cs_wins[1].size - 1);
 
 	/*
 	* Use reserved settings if warm boot is found, otherwise, because ddr init process
