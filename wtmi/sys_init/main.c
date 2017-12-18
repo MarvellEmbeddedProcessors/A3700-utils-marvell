@@ -91,7 +91,7 @@ int sys_init_main(void)
 	ddr_para.warm_boot = sys_check_warm_boot();
 	if (ddr_para.warm_boot) {
 		chksum_in_dram = readl(DDR_TUNE_RESULT_MEM_BASE + sizeof(struct ddr_init_result));
-		if (chksum_in_dram != do_checksum32(result_in_dram, sizeof(struct ddr_init_result)))
+		if (chksum_in_dram != do_checksum32((u32 *)result_in_dram, sizeof(struct ddr_init_result)))
 			printf("DDR tuning result checksum ERROR!\n");
 	}
 	ddr_para.log_level = LOG_LEVEL_NONE;
@@ -204,7 +204,7 @@ int sys_init_main(void)
 	/* Copy tuning result to reserved memory */
 	if (!ddr_para.warm_boot) {
 		memcpy(result_in_dram, &result_in_sram, sizeof(struct ddr_init_result));
-		writel(do_checksum32(&result_in_sram, sizeof(struct ddr_init_result)),
+		writel(do_checksum32((u32 *)&result_in_sram, sizeof(struct ddr_init_result)),
 			DDR_TUNE_RESULT_MEM_BASE + sizeof(struct ddr_init_result));
 	}
 
