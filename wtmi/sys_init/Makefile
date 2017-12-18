@@ -91,17 +91,59 @@ START_ADDR_DEC		:= $(shell printf %d 0x1fff0000)
 LOAD_ADDR_DEC		:= $(shell expr $(LOAD_OFFSET) + $(START_ADDR_DEC))
 LOAD_ADDR		:= $(shell printf 0x%x $(LOAD_ADDR_DEC))
 
-CFLAGS += -DDEBUG=$(DEBUG) -DWTMI_CLOCK=$(WTMI_CLOCK) -DDDR_TOPOLOGY=$(DDR_TOPOLOGY)
+CFG_HEADER = autoconf.h
+
+define filechk
+	@set -e;				\
+	echo '  CHK     $@';		\
+	mkdir -p $(dir $@);			\
+	$(filechk_$(1)) > $@.tmp;		\
+	if [ -r $@ ] && cmp -s $@ $@.tmp; then	\
+		rm -f $@.tmp;			\
+	else					\
+		echo '  UPD     $@';	\
+		mv -f $@.tmp $@;		\
+	fi
+endef
+
+# FIX-ME:
+# replace the relative path to the DDR topology
+# files and scripts
+DDR_TOPOLOGY_PATH=../../tim/ddr
+DDR_TOPOLOGY_FILE=$(DDR_TOPOLOGY_PATH)/DDR_TOPOLOGY_$(DDR_TOPOLOGY).txt
+
+SCRIPT_PATH=../../script
+GET_DDR_PARAMS=$(SCRIPT_PATH)/getddrparams.sh
+
+CONFIG_DDR_TYPE  := $(shell $(GET_DDR_PARAMS) $(DDR_TOPOLOGY_FILE) ddr_type)
+CONFIG_BUS_WIDTH := $(shell $(GET_DDR_PARAMS) $(DDR_TOPOLOGY_FILE) ddr_bus_width_index)
+CONFIG_SPEED_BIN := $(shell $(GET_DDR_PARAMS) $(DDR_TOPOLOGY_FILE) ddr_speedbin_index)
+CONFIG_CS_NUM    := $(shell $(GET_DDR_PARAMS) $(DDR_TOPOLOGY_FILE) ddr_cs_mask)
+CONFIG_DEV_CAP   := $(shell $(GET_DDR_PARAMS) $(DDR_TOPOLOGY_FILE) ddr_mem_size_index)
+
+define filechk_autoconf.h
+	(echo \#define DEBUG $(DEBUG);\
+	echo \#define WTMI_CLOCK $(WTMI_CLOCK);\
+	echo \#define CONFIG_DDR_TYPE $(CONFIG_DDR_TYPE);\
+	echo \#define CONFIG_BUS_WIDTH $(CONFIG_BUS_WIDTH);\
+	echo \#define CONFIG_SPEED_BIN $(CONFIG_SPEED_BIN);\
+	echo \#define CONFIG_CS_NUM $(CONFIG_CS_NUM);\
+	echo \#define CONFIG_DEV_CAP $(CONFIG_DEV_CAP);)
+endef
 
 .SILENT:
+.PHONY: $(CFG_HEADER)
 
-all:  $(COBJ) $(AOBJ) $(BINPATH)
+all: $(CFG_HEADER) $(COBJ) $(AOBJ) $(BINPATH)
 	rm -f ./$(LDSCRIPT)
 	$(SED) 's|. = LOAD_ADDR|. = $(LOAD_ADDR)|1' $(COMMON_PATH)/template.ld > ./$(LDSCRIPT)
 	$(ECHO) "  CC    $(LDFLAGS)  $(AOBJ)  $(COBJ) -o $(BINPATH)/sys_init.elf"
 	$(CC) $(LDFLAGS)  $(AOBJ)  $(COBJ) -o $(BINPATH)/sys_init.elf
 	$(OBJCOPY) -S -O binary $(BINPATH)/sys_init.elf $(BINPATH)/sys_init.bin
 	@if [ `uname -m` = "x86_64" ]; then $(OBJDUMP) -D -S $(BINPATH)/sys_init.elf > $(BINPATH)/sys_init.dis; fi
+
+$(CFG_HEADER):
+	$(call filechk,autoconf.h)
 
 %.o: %.c
 	$(ECHO) "  CC    $<"
@@ -119,4 +161,4 @@ $(BINPATH):
 clean:
 	$(ECHO) "  SYS INIT CLEAN"
 	@$(RM) -rf $(BINPATH)
-	@$(RM) -f *.o *.elf *.bin *.d *dis ddr/*.o ddr/*.d $(COMMON_PATH)/*.o $(LDSCRIPT)
+	@$(RM) -f autoconf.h *.o *.elf *.bin *.d *dis ddr/*.o ddr/*.d $(COMMON_PATH)/*.o $(LDSCRIPT)
