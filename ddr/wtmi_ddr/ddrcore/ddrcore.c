@@ -77,9 +77,22 @@ int init_ddr(struct ddr_init_para init_para,
 	/* Write patterns at slow speed before going into Self Refresh */
 	//TODO: ddr_test_dma(0x1000) - size, base addr - Is it needed if I do self_refresh_test(0)
 
-	/* Test the pattern written correctly */
-	for(cs=0; cs<tc_cs_num; cs++)
-		self_refresh_test(0, init_para.cs_wins[cs].base, init_para.cs_wins[cs].size);
+	/*
+	 * The self-refresh test should applied to the code boot only.
+	 * In a warm boot, DRAM holds the user data and Linux content
+	 * of the previous boot. The test may corrupt the existing
+	 * data unexpectly.
+	 */
+	if (!init_para.warm_boot)
+		/*
+		 * The CM3's address map to DRAM is supplied, which is
+		 * available for memory test. But the boot image is pre-
+		 * loaded and located at 0x0041.0000. Avoiding wripping
+		 * out the image data, only fill the test pattern to the
+		 * first 1KB memory per each chip select.
+		 */
+		for(cs=0; cs<tc_cs_num; cs++)
+			self_refresh_test(0, init_para.cs_wins[cs].base, 1024);
 
 	/* 1. enter self refresh */
 	self_refresh_entry();
@@ -111,6 +124,10 @@ int init_ddr(struct ddr_init_para init_para,
 
 	/* 9. do MR command */
 	send_mr_commands(tc_ddr_type);
+
+	if (!init_para.warm_boot)
+		for(cs=0; cs<tc_cs_num; cs++)
+			self_refresh_test(1, init_para.cs_wins[cs].base, 1024);
 
 	if(init_para.warm_boot)
         {
