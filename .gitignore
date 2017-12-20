@@ -8,4 +8,5 @@ wtmi/build/*
 #ignore specific files
 ddr_static.txt
 autoconf.h
+tim/ddr/ddr_tool
 

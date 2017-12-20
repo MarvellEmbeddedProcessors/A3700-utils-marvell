@@ -43,12 +43,12 @@ RSRVDLEN=`wc -l < $IMGPATH/$RSRVDPREF.$FILEEXT`
 # DDR static - auto-generated file according
 # to the specified DDR topology map profile
 DDRFILE=$CLOCKSPATH/ddr_static.$FILEEXT
-DDRPARSER=$CLOCKSPATH/ddrparser.pl
 
 
 # DLL tuning - same for all DDR frequencies
 # Located in the same folder as DDR init file
 DLLTUNFILE=$CLOCKSPATH/dll_tune.$FILEEXT
+GETDDRPARAMS=$WTPPATH/script/getddrparams.sh
 
 # TIM/NTIM image definition file name prefix
 TIMPREF="tim"
@@ -242,7 +242,28 @@ esac
 
 CLOCKSFILE=$CLOCKSPATH/clocks_ddr.txt
 # All DDR use the configuration for 800M
-$DDRPARSER -i $DDRTOPFILE
+DDRTYPE=`$GETDDRPARAMS $DDRTOPFILE ddr_type`
+
+$CLOCKSPATH/ddr_tool -i $DDRTOPFILE -o $CLOCKSPATH/ddr_static.txt
+
+if [ $? -ne 0 ]; then
+	echo "DDR_tool fails to run!"
+	exit 1
+fi
+
+if [ ! -e $CLOCKSPATH/ddr_static.txt ]; then
+	echo "Cannot find ddr_static.txt file!"
+	exit 1
+elif [ ! -s $CLOCKSPATH/ddr_static.txt ]; then
+	echo "ddr_static.txt file is empty!"
+	exit 1
+fi
+
+if [ $DDRTYPE = "0" ]; then
+		cp -f $CLOCKSPATH/clocks-ddr3.txt $CLOCKSPATH/clocks_ddr.txt
+elif [ $DDRTYPE = "1" ]; then
+		cp -f $CLOCKSPATH/clocks-ddr4.txt $CLOCKSPATH/clocks_ddr.txt
+fi
 
 if [ ! -e "$DDRFILE" ]; then
 	echo "Cannot find DDR init file!"

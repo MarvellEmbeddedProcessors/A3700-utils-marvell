@@ -20,7 +20,3 @@ ddr_bus_width_index=2
 
 #4Gbits (512MB)
 ddr_mem_size_index=3
-
-#800M
-ddr_mem_freq_index=3
-
