@@ -18,6 +18,7 @@ endif
 all: mv_ddr WTMI
 
 mv_ddr:
+	${Q}${MAKE} PLATFORM=a3700 --no-print-directory -C ${MV_DDR_PATH} DDR_TYPE=$(DDR_TYPE) clean
 	make -C ${MV_DDR_PATH} PLATFORM=a3700 DDR_TYPE=$(DDR_TYPE)
 	@cp -f ${MV_DDR_PATH}/a3700_tool $(TIM_DDR_PATH)/ddr_tool
 
