@@ -55,6 +55,10 @@ The configuration file is like below::
 	#4Gbits (512MB)
 	ddr_mem_size_index=3
 
+	#800M-1600K(optional)
+	ddr_cas_latency=11
+	ddr_cas_write_latency=8
+
 5. configuration items
 ----------------------
 ::
@@ -73,6 +77,12 @@ The configuration file is like below::
 	value:  0-512Mb, 1-1GBb, 2-2Gb,
 		3-4Gb, 4-8Gb, 5-16Gb, 6-32Gb
 	tips:   this is the memory size (in bits) of the single DDR chip
+
+	name:   ddr_cas_latency/ddr_cas_write_latency
+	value:  latency for the specific ddr clock and speedbin
+	tips:   optional, use default value if not set
+	        default value: DDR3-800Mhz-1600K(CL=11, CWL=8)
+	                       DDR4-800Mhz-2400R(CL=12, CWL=11)
 
 	name:   ddr_speedbin_index
 	value:

@@ -104,7 +104,7 @@ int init_ddr(struct ddr_init_para init_para,
 	phyinit_sequence_sync2(1, 3, 2, 0);
 
 	/* 4. update CL/CWL *nd other timing parameters as per lookup table */
-	mc6_init_timing_selfrefresh(tc_ddr_type, init_para.speed);
+	/* Skip it, use the current settings in register */
 
 	/* 5. enable DDRPHY termination */
 	if(tc_ddr_type == DDR3)
