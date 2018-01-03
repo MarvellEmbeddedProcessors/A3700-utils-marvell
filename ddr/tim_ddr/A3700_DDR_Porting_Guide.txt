@@ -31,12 +31,14 @@ This tool is located at /path_to_A3700_utils/tim/ddr/
 		-h      display this help
 
 	For example:
-		./ddr_tool -i cfg_ddr4_1cs.txt -o tim_ddr4_1cs.txt -r 0xC0000380=0x0007A120
+		./ddr_tool -i DDR_TOPOLOGY_CUST.txt -o tim_ddr_cust.txt -r 0xC0000380=0x0007A120
 
 4. Configuration file input
 ---------------------------
 The configuration file is a txt file with items like "name=value", those lines starts with "#"
-will be skipped by the programe as comments. one example of the configuration file is like below::
+will be skipped by the programe as comments.
+Customers can use the "DDR_TOPOLOGY_CUST.txt" as an example and update the settings accordingly.
+The configuration file is like below::
 
 	#DDR3
 	ddr_type=0
