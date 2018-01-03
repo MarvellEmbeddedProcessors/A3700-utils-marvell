@@ -611,6 +611,8 @@ static u32 set_ssc_clock(u32 kvco_mhz,
 	regval = readl(MVEBU_NORTH_BRG_TBG_CTRL2);
 	regval |= (tbg_typ == TBG_A) ? BIT13 : BIT29;
 	writel(regval, MVEBU_NORTH_BRG_TBG_CTRL2);
+
+	return 0;
 }
 
 /*****************************************************************************

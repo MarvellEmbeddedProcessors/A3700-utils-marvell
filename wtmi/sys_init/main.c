@@ -295,7 +295,7 @@ int sys_init_main(void)
 	if (!ddr_para.warm_boot) {
 		memcpy(result_in_dram, &result_in_sram, sizeof(struct ddr_init_result));
 		*((u32 *)(DDR_TUNE_RESULT_MEM_BASE + sizeof(struct ddr_init_result))) =
-			do_checksum32(&result_in_sram, sizeof(struct ddr_init_result));
+			do_checksum32((u32 *)&result_in_sram, sizeof(struct ddr_init_result));
 	}
 
 	kick_ap();
