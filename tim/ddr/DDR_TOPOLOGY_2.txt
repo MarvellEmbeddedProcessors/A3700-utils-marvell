@@ -19,4 +19,4 @@ ddr_speedbin_index=12
 ddr_bus_width_index=2
 
 #4Gbits (512MB)
-ddr_mem_size_index=4
+ddr_mem_size_index=3
