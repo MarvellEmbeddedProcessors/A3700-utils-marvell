@@ -246,8 +246,8 @@ static struct clock_cfg clk_cfg_all[] = {\
 		 {1, 5, 2, 5, 2, 3, 2, 2, 3},		/* DIV1 */\
 		 {4, 1, 5, 1, 3, 1, 2, 0, 0, 1} },	/* DIV2 */\
 		/* SouthBridge */\
-		{{TBG_B_P, TBG_B_S, TBG_B_S, TBG_A_S, TBG_B_S, TBG_B_S, TBG_A_S},\
-		 {1, 3, 2, 5, 2, 4, 1, 3},	/* DIV0 */\
+		{{TBG_B_P, TBG_B_S, TBG_B_S, TBG_A_S, TBG_B_S, TBG_B_S, TBG_B_S},\
+		 {1, 3, 2, 5, 2, 4, 1, 5},	/* DIV0 */\
 		 {2, 4, 0, 0, 0, 4, 1},		/* DIV1 */\
 		 {5, 4} }			/* DIV2 */\
 	},\
@@ -262,7 +262,7 @@ static struct clock_cfg clk_cfg_all[] = {\
 		{1, 5, 2, 5, 1, 4, 1, 1, 4},		/* DIV1 */\
 		{4, 1, 4, 1, 4, 2, 1, 0, 0, 1} },	/* DIV2 */\
 		/* SouthBridge */\
-		{{TBG_B_P, TBG_B_S, TBG_B_S, TBG_A_S, TBG_B_S, TBG_B_S, TBG_A_S},\
+		{{TBG_B_P, TBG_B_S, TBG_B_S, TBG_A_S, TBG_B_S, TBG_B_S, TBG_B_S},\
 		{1, 4, 2, 5, 2, 4, 2, 2},	/* DIV0 */\
 		{2, 4, 0, 0, 0, 4, 1},		/* DIV1 */\
 		{5, 2} }			/* DIV2 */\
@@ -278,7 +278,7 @@ static struct clock_cfg clk_cfg_all[] = {\
 		{1, 5, 2, 5, 1, 4, 1, 1, 4},		/* DIV1 */\
 		{4, 1, 4, 1, 4, 2, 1, 0, 0, 1} },	/* DIV2 */\
 		/* SouthBridge */\
-		{{TBG_B_P, TBG_B_S, TBG_B_S, TBG_A_S, TBG_B_S, TBG_B_S, TBG_A_S},\
+		{{TBG_B_P, TBG_B_S, TBG_B_S, TBG_A_S, TBG_B_S, TBG_B_S, TBG_B_S},\
 		{1, 4, 2, 5, 2, 4, 2, 2},	/* DIV0 */\
 		{2, 4, 0, 0, 0, 4, 1},		/* DIV1 */\
 		{5, 2} }			/* DIV2 */\
@@ -294,8 +294,8 @@ static struct clock_cfg clk_cfg_all[] = {\
 		{1, 6, 3, 4, 1, 6, 1, 1, 6},		/* DIV1 */\
 		{4, 1, 6, 1, 3, 1, 3, 0, 0, 1} },	/* DIV2 */\
 		/* SouthBridge */\
-		{{TBG_B_P, TBG_A_S, TBG_A_S, TBG_B_S, TBG_A_S, TBG_A_S, TBG_B_P},\
-		{1, 3, 3, 5, 3, 4, 1, 3},	/* DIV0 */\
+		{{TBG_B_P, TBG_A_S, TBG_A_S, TBG_B_S, TBG_A_S, TBG_A_S, TBG_A_S},\
+		{1, 3, 3, 5, 3, 4, 2, 3},	/* DIV0 */\
 		{3, 4, 0, 0, 0, 2, 3},		/* DIV1 */\
 		{4, 6} }			/* DIV2 */\
 	},\
