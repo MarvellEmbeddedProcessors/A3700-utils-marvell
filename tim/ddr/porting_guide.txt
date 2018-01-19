@@ -70,8 +70,8 @@ The configuration file is like below::
 	value:  1-1CS, 3-2CS
 
 	name:   ddr_bus_width_index
-	value:  0-4bits, 1-8bits, 2-16bits, 3-32bits
-	tips:   this is the data width of the DDR chip
+	value:  0-4bits, 1-8bits, 2-16bits
+	tips:   this is the data width of the single DDR chip
 
 	name:   ddr_mem_size_index
 	value:  0-512Mb, 1-1GBb, 2-2Gb,
