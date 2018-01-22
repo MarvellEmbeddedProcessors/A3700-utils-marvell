@@ -35,6 +35,66 @@
 #include "sys.h"
 #include "avs.h"
 
+struct avs_val_map {
+	unsigned int avs_val;
+	char        *desc;
+};
+
+static struct avs_val_map avis_dump[] = {
+	{0x0,  "0.747V"},
+	{0x1,  "0.758V"},
+	{0x2,  "0.770V"},
+	{0x3,  "0.782V"},
+	{0x4,  "0.793V"},
+	{0x5,  "0.805V"},
+	{0x6,  "0.817V"},
+	{0x7,  "0.828V"},
+	{0x8,  "0.840V"},
+	{0x9,  "0.852V"},
+	{0xa,  "0.863V"},
+	{0xb,  "0.875V"},
+	{0xc,  "0.887V"},
+	{0xd,  "0.898V"},
+	{0xe,  "0.910V"},
+	{0xf,  "0.922V"},
+	{0x10, "0.933V"},
+	{0x11, "0.945V"},
+	{0x12, "0.957V"},
+	{0x13, "0.968V"},
+	{0x14, "0.980V"},
+	{0x15, "0.992V"},
+	{0x16, "1.003V"},
+	{0x17, "1.015V"},
+	{0x18, "1.027V"},
+	{0x19, "1.038V"},
+	{0x1a, "1.050V"},
+	{0x1b, "1.062V"},
+	{0x1c, "1.073V"},
+	{0x1d, "1.085V"},
+	{0x1e, "1.097V"},
+	{0x1f, "1.108V"},
+	{0x20, "1.120V"},
+	{0x21, "1.132V"},
+	{0x22, "1.143V"},
+	{0x23, "1.155V"},
+	{0x24, "1.167V"},
+	{0x25, "1.178V"},
+	{0x26, "1.190V"},
+	{0x27, "1.202V"},
+	{0x28, "1.213V"},
+	{0x29, "1.225V"},
+	{0x2a, "1.237V"},
+	{0x2b, "1.248V"},
+	{0x2c, "1.260V"},
+	{0x2d, "1.272V"},
+	{0x2e, "1.284V"},
+	{0x2f, "1.295V"},
+	{0x30, "1.307V"},
+	{0x31, "1.318V"},
+	{0x32, "1.330V"},
+	{0x33, "1.342V"}
+};
+
 static int otp_nb_read_parallel(u32 *data)
 {
 	u32 regval;
@@ -143,9 +203,13 @@ int init_avs(u32 speed)
 			   AVS_VDD_BASE) & AVS_VDD_MASK;
 		regval |= (vdd_otp << HIGH_VDD_LIMIT_OFF);
 		regval |= (vdd_otp << LOW_VDD_LIMIT_OFF);
+		printf("SVC REV: %d, CPU VDD voltage: %s\n", svc_rev,
+			avis_dump[vdd_otp].desc);
 	} else {
 		regval |= (vdd_default << HIGH_VDD_LIMIT_OFF);
 		regval |= (vdd_default << LOW_VDD_LIMIT_OFF);
+		printf("CPU VDD voltage default value: %s\n",
+			avis_dump[vdd_default].desc);
 	}
 
 	/* Set high&low VDD limit */
