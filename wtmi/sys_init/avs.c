@@ -179,9 +179,6 @@ int init_avs(u32 speed)
 
 	switch (speed) {
 	case OTP_SVC_SPEED_600:
-		shift = OTP_SVC_SPEED_600_OFF;
-		vdd_default = VAS_600M_DEFAULT_VALUE;
-		break;
 	case OTP_SVC_SPEED_800:
 		shift = OTP_SVC_SPEED_800_OFF;
 		vdd_default = VAS_800M_DEFAULT_VALUE;

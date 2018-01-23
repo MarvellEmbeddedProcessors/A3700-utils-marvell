@@ -88,7 +88,6 @@ enum otp_svc_speed_off {
 };
 
 enum avs_default_value {
-	VAS_600M_DEFAULT_VALUE = 0x1F, /* 1100mV */
 	VAS_800M_DEFAULT_VALUE = 0x1F, /* 1100mV */
 	VAS_1000M_DEFAULT_VALUE = 0x23, /* 1150mV */
 	VAS_1200M_DEFAULT_VALUE = 0x27, /* 1200mV */
