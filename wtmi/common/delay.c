@@ -153,7 +153,7 @@ u32 clock_init(void)
 
 	if (cm3_clk != 0) {
 		clk_ns = 1000 / cm3_clk;
-		loop_ns = clk_ns / CYCLES_PER_LOOP;
+		loop_ns = clk_ns * CYCLES_PER_LOOP;
 		status = NO_ERROR;
 	}
 
