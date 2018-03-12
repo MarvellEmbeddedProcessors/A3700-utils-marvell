@@ -303,6 +303,9 @@ static struct clock_cfg clk_cfg_all[] = {\
 static struct clock_cfg *clk_cfg;
 static u32 preset_flag;
 
+/* check whether the TARGET clock comes from TBG-A or not */
+#define CLOCK_SOURCE_FROM_TBG_A(TARGET_CLOCK) ((TARGET_CLOCK == TBG_A_P) || (TARGET_CLOCK == TBG_A_S))
+
 /*****************************************************************************
  * set_clock_preset
  *
@@ -673,15 +676,19 @@ int setup_clock_tree(void)
 	reg_val &= ~(BIT10 | BIT26);
 	writel(reg_val, MVEBU_NORTH_BRG_TBG_CTRL3);
 
-	/* set TBG-A SSC clock */
-	ssc.mode = DOWN_SPREAD;
-	ssc.mod_freq = SSC_MODULATION_FREQ;
-	ssc.amp_freq = SSC_AMPLITUDE_FREQ;
-	ssc.offset = 0;
-	rval = set_ssc_clock(clk_cfg->tbg_a.kvco_mhz,
-			     clk_cfg->tbg_a.se_vcodiv,
-			     TBG_A,
-			     &ssc);
+	/* Don't set TBG-A SSC clock if anyone of gbe clocks comes from TBG_A */
+	if (!CLOCK_SOURCE_FROM_TBG_A(clk_cfg->sb_clk_cfg.clock_sel.gbe_125_pclk_sel) &&
+		!CLOCK_SOURCE_FROM_TBG_A(clk_cfg->sb_clk_cfg.clock_sel.gbe_50_pclk_sel) &&
+		!CLOCK_SOURCE_FROM_TBG_A(clk_cfg->sb_clk_cfg.clock_sel.gbe_core_pclk_sel)) {
+		ssc.mode = DOWN_SPREAD;
+		ssc.mod_freq = SSC_MODULATION_FREQ;
+		ssc.amp_freq = SSC_AMPLITUDE_FREQ;
+		ssc.offset = 0;
+		rval = set_ssc_clock(clk_cfg->tbg_a.kvco_mhz,
+				     clk_cfg->tbg_a.se_vcodiv,
+				     TBG_A,
+				     &ssc);
+	}
 
 	/* set TGB-B clock frequency */
 	rval = set_tbg_clock(clk_cfg->tbg_b.kvco_mhz,
