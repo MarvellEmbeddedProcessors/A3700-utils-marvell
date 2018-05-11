@@ -43,13 +43,11 @@
 #include "ddr.h"
 #include "ddr_support.h"
 
-#define aprintf printf
-
 #define DLL_PHSEL_START		0x00
 #define DLL_PHSEL_END		0x3F
 #define DLL_PHSEL_STEP		0x1
 
-unsigned int short_DLL_tune(unsigned int ratio, unsigned int cs_base, unsigned int log_en, unsigned int mpr_en, unsigned short *ret_m);
+unsigned int short_DLL_tune(unsigned int ratio, unsigned int cs, unsigned int cs_base, unsigned int mpr_en, unsigned short *ret_m);
 
 static const unsigned int tune_patterns[] =
 {
@@ -141,7 +139,7 @@ static int DDR_WR_Test(unsigned int start, unsigned int size)
 	if (walking1_pattern(start, end))
 		return 1;
 
-	return 0;
+	return 0;	//pass
 }
 
 void reset_dll_phy(void)
@@ -184,7 +182,7 @@ static void set_dll_phsel(unsigned short offset, unsigned short bit_offset, unsi
 	reset_dll_phy();
 }
 
-unsigned short DLL_fine_tune(unsigned int ratio, struct ddr_init_para init_para, unsigned int num_of_cs, unsigned int log_en, unsigned short medium[])
+unsigned short DLL_fine_tune(unsigned int ratio, struct ddr_init_para init_para, unsigned int num_of_cs, unsigned short medium[])
 {
 	unsigned short offset[] = {0, 0, 4, 4, 36, 36};  //GT
 	unsigned short bit_offset[] = {16, 24, 16, 24, 16, 24}; //GT
@@ -205,8 +203,10 @@ unsigned short DLL_fine_tune(unsigned int ratio, struct ddr_init_para init_para,
 	regval |= 0x80000000;
 	ll_write32(PHY_CONTROL_8, regval);  // Write R41C
 
+	LogMsg(LOG_LEVEL_DEBUG, FLAG_REGS_DLL_TUNE, "\n\nPerform fine DLL tuning:");
 	for(i=0; i<sizeof(offset)/sizeof(offset[0]); ++i)
 	{
+		LogMsg(LOG_LEVEL_DEBUG, FLAG_REGS_DLL_TUNE, "\n\n\tDLL 0x%8x[%2d:%2d]: [l, r, m]", PHY_DLL_CONTROL_BASE+offset[i], bit_offset[i]+5, bit_offset[i]);
 		for(cs=0; cs<num_of_cs; cs++)
 		{
 			left[cs] = medium[cs];
@@ -224,12 +224,12 @@ unsigned short DLL_fine_tune(unsigned int ratio, struct ddr_init_para init_para,
 			}while(!DDR_WR_Test(init_para.cs_wins[cs].base, 100*2) && right[cs]<DLL_PHSEL_END);
 
 			m[cs] = left[cs] + (right[cs] -left[cs])/ratio;
-			//printf(" CS%d:  DLL 0x%8x[%2d:%2d]: [%x,%x,%x]\n",cs,
-				//PHY_DLL_CONTROL_BASE+offset[i], bit_offset[i]+5, bit_offset[i], left[cs], right[cs],m[cs]);
+			LogMsg(LOG_LEVEL_DEBUG, FLAG_REGS_DLL_TUNE, "\n\t\tCS%d: [%x, %x, %x]",cs, left[cs], right[cs],m[cs]);
 			set_dll_phsel(offset[i], bit_offset[i], m[cs]);
-		}  		
+		}
 
 		//pick the window common to all CS, if none exists default to CS0
+		LogMsg(LOG_LEVEL_DEBUG, FLAG_REGS_DLL_TUNE, "\n\tPick the window common to all CS, if none exists default to CS0");
 		l=left[0]; r=right[0];
 		for(cs=1;cs<num_of_cs; cs++)
 		{
@@ -240,13 +240,10 @@ unsigned short DLL_fine_tune(unsigned int ratio, struct ddr_init_para init_para,
 		}
 
 		med = l + (r - l)/ratio;
-		if(log_en)
-			printf("   DLL 0x%8x[%2d:%2d]: [%x,%x,%x]\n",
+		LogMsg(LOG_LEVEL_DEBUG, FLAG_REGS_DLL_TUNE, "\n\tDLL 0x%8x[%2d:%2d]: [%x,%x,%x]",
 				PHY_DLL_CONTROL_BASE+offset[i], bit_offset[i]+5, bit_offset[i], l, r, med);
 		set_dll_phsel(offset[i], bit_offset[i], med);
 	}
-	if(log_en)
-		printf(" DLL: pass  ");
 	return 1;	//DLL passed
 }
 
@@ -270,11 +267,9 @@ static unsigned int mpr_read_Test(unsigned int start, unsigned int ddr_size)
         return 0;
 }
 
-unsigned int short_DLL_tune(unsigned int ratio, unsigned int cs_base, unsigned int log_en, unsigned int mpr_en, unsigned short *ret_m)
+unsigned int short_DLL_tune(unsigned int ratio, unsigned int cs, unsigned int cs_base, unsigned int mpr_en, unsigned short *ret_m)
 {
         unsigned short left, right, i;
-
-	//step 1. use medium of DLL_PHSEL_START and DLL_PHSEL_END as base settings
         unsigned short medium;
         unsigned int regval, res;
 
@@ -290,6 +285,7 @@ unsigned int short_DLL_tune(unsigned int ratio, unsigned int cs_base, unsigned i
         regval |= 0x80000000;
         ll_write32(PHY_CONTROL_8, regval);  // Write R41C
 
+	LogMsg(LOG_LEVEL_DEBUG, FLAG_REGS_DLL_TUNE, "\n\tCS%d: Increment dll_phsel0 and dll_phsel1 equally by 1 and find the passing window", cs);
 	//enable mpr mode
 	if(mpr_en)
 	{
@@ -306,18 +302,19 @@ unsigned int short_DLL_tune(unsigned int ratio, unsigned int cs_base, unsigned i
 		else
 			res = DDR_WR_Test(cs_base, 32);
 
-		if(!res) {
+		if(!res) {	//PASS
 			if( i<left) left = i;
 			if( i>right) right = i;
+			LogMsg(LOG_LEVEL_DEBUG, FLAG_REGS_DLL_TUNE, "\n\t\tdll_phsel_0 = dll_phsel_1 = 0x%02X left = 0x%02X, right = 0x%02X", i, left, right);
 		}
 	}
 	if(left>right){
-                if(log_en)
-                        printf(" DLL: fail  ");
+                LogMsg(LOG_LEVEL_DEBUG, FLAG_REGS_DLL_TUNE, "\n\t\tNo passing window");
                 return 0;
         }else{
                 medium = left + ((right-left)/ratio);
                 set_DLL(medium, medium);
+		LogMsg(LOG_LEVEL_DEBUG, FLAG_REGS_DLL_TUNE, "\n\t\tCS%d: Passing window: 0x%02X-0x%02X \t\tMedium = 0x%02X", cs, left, right, medium);
         }
 	*ret_m = medium;
 
@@ -327,7 +324,7 @@ unsigned int short_DLL_tune(unsigned int ratio, unsigned int cs_base, unsigned i
 		ll_write32(CH0_DRAM_Config_3, (ll_read32(CH0_DRAM_Config_3) & (~0x00000040)));
 		ll_write32(USER_COMMAND_2, 0x13000800);
 	}
-	
+
         return 1;
 }
 
@@ -336,12 +333,10 @@ unsigned int DLL_tuning(unsigned int ratio, unsigned int num_of_cs, struct ddr_i
 	unsigned int cs = 0, res = 1;
 	unsigned short optimal[MAX_CS_NUM], medium[MAX_CS_NUM];
 
-	if(init_para.log_level)
-		printf("\nDLL TUNING\n==============\n");
-
+	LogMsg(LOG_LEVEL_DEBUG, FLAG_REGS_DLL_TUNE, "\nPerform coarse DLL tuning:");
 	for (cs=0; cs<num_of_cs; cs++)
 	{
-		optimal[cs] = short_DLL_tune(ratio, init_para.cs_wins[cs].base, init_para.log_level, mpr_mode, &medium[cs]);
+		optimal[cs] = short_DLL_tune(ratio, cs, init_para.cs_wins[cs].base, mpr_mode, &medium[cs]);
 		res &= optimal[cs];
 	}
 
@@ -350,7 +345,7 @@ unsigned int DLL_tuning(unsigned int ratio, unsigned int num_of_cs, struct ddr_i
 	else
 	{
 		if(res)
-			DLL_fine_tune(ratio, init_para, num_of_cs, init_para.log_level, medium);
+			DLL_fine_tune(ratio, init_para, num_of_cs, medium);
 		else
 			return 0;	//DLL tuning FAIL
 	}

@@ -39,9 +39,9 @@
 #define MAX_RL_CYCLE_DELAY 	0xF
 #define MAX_RL_TAP_DELAY	0x7F
 
-int qs_gating(unsigned int base_addr, unsigned int cs, unsigned int log_en, struct ddr_init_result *result);
+int qs_gating(unsigned int base_addr, unsigned int cs, struct ddr_init_result *result);
 
-int qs_gating(unsigned int base_addr, unsigned int cs_num, unsigned int log_en, struct ddr_init_result *result)
+int qs_gating(unsigned int base_addr, unsigned int cs_num, struct ddr_init_result *result)
 {
         unsigned int result_outp, result_outn;
         unsigned int rl_cycle_dly = 0, rl_tap_dly = 0;
@@ -49,31 +49,28 @@ int qs_gating(unsigned int base_addr, unsigned int cs_num, unsigned int log_en, 
 	unsigned int enable_wl_rl_ctl_val = 0;
 
         //QS Gate calibration does not require write data to be properly calibrated. Dummy reads that generate a DQS burst is all that is required. The DQ value is not important.
-        printf("\n\nQS GATING\n=============");
-
+	LogMsg(LOG_LEVEL_DEBUG, FLAG_REGS_QS_GATE, "\nCS%d Calibration start:", cs_num);
         //1.Set QSG_CLR=0, then set QSG_CLR=1. This is to clear the outp/outn registers
         //enable phy rl enable
         replace_val(CH0_PHY_WL_RL_Control, 0x3, CH0_PHY_WL_RL_CONTROL_RL_ENABLE_SHIFT, CH0_PHY_WL_RL_CONTROL_RL_ENABLE_MASK);
 	enable_wl_rl_ctl_val = ll_read32(CH0_PHY_WL_RL_Control);
-        if(log_en)
-                printf("\n\nEnable Read Leveling and clear QSG_Outp/QSG_Outn registers: 0x%08X 0x%08X", CH0_PHY_WL_RL_Control, ll_read32(CH0_PHY_WL_RL_Control));
+        LogMsg(LOG_LEVEL_DEBUG, FLAG_REGS_QS_GATE, "\n\tEnable Read Leveling and clear QSG_Outp/QSG_Outn registers: 0x%08X 0x%08X", CH0_PHY_WL_RL_Control, ll_read32(CH0_PHY_WL_RL_Control));
 
         ll_read32(base_addr + 0x4);
         wait_ns(100000);
         //Read register QSG_Dx_OUTP and QSG_Dx_OUTN
         result_outp = ll_read32(CH0_PHY_DQS_Gate_Outp_result);
         result_outn = ll_read32(CH0_PHY_DQS_Gate_Outn_result);
-        if(log_en)
-        {
-                printf("\n\nPost clearing outp outn");
-                printf("\nresult_outp[0x%08X] = 0x%08X result_outn[0x%08X] = 0x%08X rl_cycle_dly = 0x%02X rl_tap_dly = 0x%02X\n",\
-                        CH0_PHY_DQS_Gate_Outp_result, result_outp, CH0_PHY_DQS_Gate_Outn_result, result_outn, rl_cycle_dly, rl_tap_dly);
-        }
+        LogMsg(LOG_LEVEL_DEBUG, FLAG_REGS_QS_GATE, "\n\tPost clearing outp outn:");
+        LogMsg(LOG_LEVEL_DEBUG, FLAG_REGS_QS_GATE, "\n\t\tresult_outp[0x%08X] = 0x%08X result_outn[0x%08X] = 0x%08X rl_cycle_dly = 0x%02X rl_tap_dly = 0x%02X",\
+        	CH0_PHY_DQS_Gate_Outp_result, result_outp, CH0_PHY_DQS_Gate_Outn_result, result_outn, rl_cycle_dly, rl_tap_dly);
 
         //2.Enter MPR mode.
+	LogMsg(LOG_LEVEL_DEBUG, FLAG_REGS_QS_GATE, "\n\tEnter MPR mode");
         ll_write32(CH0_DRAM_Config_3, (ll_read32(CH0_DRAM_Config_3) | 0x00000040));
         ll_write32(USER_COMMAND_2, 0x13000800);
 
+	LogMsg(LOG_LEVEL_DEBUG, FLAG_REGS_QS_GATE, "\n\tIncrement cycle and tap delay to detect edges");
         for(rl_cycle_dly = 0; rl_cycle_dly < 0xF; rl_cycle_dly++)
         {
                 if(cal_done_flag)
@@ -98,23 +95,25 @@ int qs_gating(unsigned int base_addr, unsigned int cs_num, unsigned int log_en, 
                         //5.Read register QSG_Dx_OUTP and QSG_Dx_OUTN.
                         result_outp = ll_read32(CH0_PHY_DQS_Gate_Outp_result);
                         result_outn = ll_read32(CH0_PHY_DQS_Gate_Outn_result);
-                        //printf("\nOutp = 0x%08X Outn = 0x%08X cycle = 0x%02X tap =0x%02X", result_outp, result_outn, rl_cycle_dly, rl_tap_dly);
+			LogMsg(LOG_LEVEL_DEBUG, FLAG_REGS_QS_GATE, "\n\t\tRead Outp = 0x%08X Outn = 0x%08X -> cycle = 0x%02X tap = 0x%02X", result_outp, result_outn, rl_cycle_dly, rl_tap_dly);
 
                         //6.If QSG_Dx_OUTP != 0xF and QSG_Dx_OUTN != 0xE, then increase either QSG_ALL_CYC_DLY, QSG_Dx_PH_DLY, or QSG_Dx_TAP_DLY. Repeat from 3.
                         //7.If QSG_Dx_OUTP == 0xF and QSG_Dx_OUTN == 0xE, then calibration is done
-                        if( (result_outp == 0xFF) && (result_outn == 0xEE) )
-                        {
-                                printf("\nCalibration done: cycle = 0x%02X tap =0x%02X\n", rl_cycle_dly, rl_tap_dly);
+                        if( (result_outp == 0xFF) && (result_outn == 0xEE) ) {
+				LogMsg(LOG_LEVEL_INFO, FLAG_REGS_QS_GATE, "\n\tCS%d: Final Cycle = 0x%02X Tap = 0x%02X", cs_num, rl_cycle_dly, rl_tap_dly);
                                 cal_done_flag = 1;
                                 break;
                         }
                 }
         }
+
         //8.Exit MPR mode
+	LogMsg(LOG_LEVEL_DEBUG, FLAG_REGS_QS_GATE, "\n\tExit MPR mode");
         ll_write32(CH0_DRAM_Config_3, (ll_read32(CH0_DRAM_Config_3) & (~0x00000040)));
         ll_write32(USER_COMMAND_2, 0x13000800);
 
         //disable phy rl enable
+	LogMsg(LOG_LEVEL_DEBUG, FLAG_REGS_QS_GATE, "\n\tDiable Read Leveling");
         replace_val(CH0_PHY_WL_RL_Control, 0x0, CH0_PHY_WL_RL_CONTROL_RL_ENABLE_SHIFT, CH0_PHY_WL_RL_CONTROL_RL_ENABLE_MASK);
 
 	if(cal_done_flag)
@@ -125,6 +124,9 @@ int qs_gating(unsigned int base_addr, unsigned int cs_num, unsigned int log_en, 
 	        result->ddr3.cs0_b1 = ll_read32(CH0_PHY_RL_Control_CS0_B1);
 		result->ddr3.cs1_b0 = ll_read32(CH0_PHY_RL_Control_CS1_B0);
 	        result->ddr3.cs1_b1 = ll_read32(CH0_PHY_RL_Control_CS1_B1);
+		LogMsg(LOG_LEVEL_DEBUG, FLAG_REGS_QS_GATE, "\nCS%d Calibration done\n", cs_num);
 	}
+	else
+		LogMsg(LOG_LEVEL_DEBUG, FLAG_REGS_QS_GATE, "\nCS%d Calibration failed: cycle and tap delay exhausted\n");
         return cal_done_flag;
 }

@@ -32,6 +32,8 @@
 ***************************************************************************
 */
 #include "ddr_support.h"
+#include "../sys.h"
+#include "ddr.h"
 
 //This function will not check the sanity of data
 void replace_val(unsigned int addr, unsigned int data, unsigned int offset, unsigned int mask)
@@ -45,3 +47,46 @@ void replace_val(unsigned int addr, unsigned int data, unsigned int offset, unsi
         ll_write32(addr, w32RegVal);    //write data into register
 }
 
+void logs_training_regs(enum training type)
+{
+	switch(type)
+	{
+		case PHYINIT_SYNC2:
+	        	LogMsg(LOG_LEVEL_INFO, FLAG_REGS_PHYINIT_SYNC2, "\n\tCH0_PHY_Control_6[0x%08X]: 0x%08X", CH0_PHY_Control_6, ll_read32(CH0_PHY_Control_6));
+        	        LogMsg(LOG_LEVEL_INFO, FLAG_REGS_PHYINIT_SYNC2, "\n\tPHY_Control_15[0x%08X]: 0x%08X", PHY_Control_15, ll_read32(PHY_Control_15));
+	                LogMsg(LOG_LEVEL_INFO, FLAG_REGS_PHYINIT_SYNC2, "\n\tPHY_Control_16[0x%08X]: 0x%08X", PHY_Control_16, ll_read32(PHY_Control_16));
+			break;
+
+		case INIT_TIMING:
+			LogMsg(LOG_LEVEL_INFO, FLAG_REGS_INIT_TIMING, "\n\tCH0_DRAM_Config_1[0x%08X]: 0x%08X", CH0_Dram_Config_1, ll_read32(CH0_Dram_Config_1));
+			break;
+
+		case TERM:
+			LogMsg(LOG_LEVEL_INFO, FLAG_REGS_TERM, "\n\tCH0_PHY_Control_2[0x%08X]: 0x%08X", CH0_PHY_Control_2, ll_read32(CH0_PHY_Control_2));
+			break;
+
+		case QS_GATE:
+			LogMsg(LOG_LEVEL_INFO, FLAG_REGS_QS_GATE, "\n\tCH0_PHY_RL_Control_CS0_B0[0x%08X]: 0x%08X", CH0_PHY_RL_Control_CS0_B0, ll_read32(CH0_PHY_RL_Control_CS0_B0));
+        	        LogMsg(LOG_LEVEL_INFO, FLAG_REGS_QS_GATE, "\n\tCH0_PHY_RL_Control_CS0_B1[0x%08X]: 0x%08X", CH0_PHY_RL_Control_CS0_B1, ll_read32(CH0_PHY_RL_Control_CS0_B1));
+                	LogMsg(LOG_LEVEL_INFO, FLAG_REGS_QS_GATE, "\n\tCH0_PHY_RL_Control_CS1_B0[0x%08X]: 0x%08X", CH0_PHY_RL_Control_CS1_B0, ll_read32(CH0_PHY_RL_Control_CS1_B0));
+			LogMsg(LOG_LEVEL_INFO, FLAG_REGS_QS_GATE, "\n\tCH0_PHY_RL_Control_CS1_B1[0x%08X]: 0x%08X\n", CH0_PHY_RL_Control_CS1_B1, ll_read32(CH0_PHY_RL_Control_CS1_B1));
+			break;
+
+		case VREF_READ:
+			LogMsg(LOG_LEVEL_INFO, FLAG_REGS_VREF_READ, "\n\tPHY_Control_15[0x%08X]: 0x%08X\n", PHY_Control_15, ll_read32(PHY_Control_15));
+			break;
+
+		case VREF_WRITE:
+			LogMsg(LOG_LEVEL_INFO, FLAG_REGS_VREF_WRITE, "\n\tCH0_DRAM_Config_4[0x%08X]: 0x%08X\n", CH0_DRAM_Config_4, ll_read32(CH0_DRAM_Config_4));
+			break;
+
+		case DLL_TUNE:
+			LogMsg(LOG_LEVEL_INFO, FLAG_REGS_DLL_TUNE, "\n\tCH0_PHY_DLL_control_B0[0x%08X]: 0x%08X", CH0_PHY_DLL_control_B0, ll_read32(CH0_PHY_DLL_control_B0));
+        	        LogMsg(LOG_LEVEL_INFO, FLAG_REGS_DLL_TUNE, "\n\tCH0_PHY_DLL_control_B1[0x%08X]: 0x%08X", CH0_PHY_DLL_control_B1, ll_read32(CH0_PHY_DLL_control_B1));
+                	LogMsg(LOG_LEVEL_INFO, FLAG_REGS_DLL_TUNE, "\n\tCH0_PHY_DLL_control_ADCM[0x%08X]: 0x%08X\n", CH0_PHY_DLL_control_ADCM, ll_read32(CH0_PHY_DLL_control_ADCM));
+			break;
+
+		default:
+			printf("\n\tNO SUCH TRAINING");
+	}
+}

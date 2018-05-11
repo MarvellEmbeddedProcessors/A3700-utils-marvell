@@ -39,7 +39,7 @@
 void mc6_init_timing_selfrefresh(enum ddr_type type, unsigned int speed)
 {
         unsigned int wrval = 0, rdval = 0;
-        printf("\nRestore CAS Read and Write Latency");
+        LogMsg(LOG_LEVEL_INFO, FLAG_REGS_INIT_TIMING, "\nUpdate CAS Read and Write Latency for %dMHz", speed);
         rdval = ll_read32(CH0_Dram_Config_1);
         if(type==DDR3)
         {
@@ -54,7 +54,6 @@ void mc6_init_timing_selfrefresh(enum ddr_type type, unsigned int speed)
                 wrval = (rdval & ~(0x00003F3F)) | (0xB0C);              //for 800MHz CL[0:5], cwl = 11[0xB], cl = 12[0xC]
 
         ll_write32(CH0_Dram_Config_1, wrval);
-        //printf("\nCH0_DRAM_Config_1 \t0x%08X\n", ll_read32(CH0_Dram_Config_1));
 }
 
 void send_mr_commands(enum ddr_type type){
@@ -84,12 +83,12 @@ void set_clear_trm(int set, unsigned int orig_val)
         rdval = ll_read32(CH0_PHY_Control_2);
         if(set)
         {
-                printf("\nRestore termination values to original values");
+                LogMsg(LOG_LEVEL_INFO, FLAG_REGS_TERM, "\nRestore termination values to original values");
                 ll_write32(CH0_PHY_Control_2, rdval | orig_val);
         }
         else
         {
-                printf("\nSet termination values to 0");
+                LogMsg(LOG_LEVEL_INFO, FLAG_REGS_TERM, "\nSet termination values to 0");
                 wrval = (rdval & ~(0x0FF00000));                //set trm to 0
                 ll_write32(CH0_PHY_Control_2, wrval);
         }
@@ -98,14 +97,14 @@ void set_clear_trm(int set, unsigned int orig_val)
 void self_refresh_entry()
 {
 	ll_write32(USER_COMMAND_0, 0x13000040);   // Enter self-refresh
-	printf("\nNow in Self-refresh Mode");
+	LogMsg(LOG_LEVEL_INFO, FLAG_REGS_DUMP_SELFTEST, "\n\nNow in Self-refresh Mode");
 }
 
 void self_refresh_exit()
 {
 	ll_write32(USER_COMMAND_0, 0x13000080);   // Exit self-refresh
 	while((ll_read32(DRAM_STATUS) & BIT2)) {};
-	printf("\nExited self-refresh ...\n");
+	LogMsg(LOG_LEVEL_INFO, FLAG_REGS_DUMP_SELFTEST, "\nExited self-refresh ...\n");
 }
 
 void self_refresh_test(int verify, unsigned int base_addr, unsigned int size)
@@ -118,12 +117,12 @@ void self_refresh_test(int verify, unsigned int base_addr, unsigned int size)
         if(!verify)
         {
                 // Write pattern
-                printf("\nFill memory before self refresh...");
+                LogMsg(LOG_LEVEL_INFO, FLAG_REGS_DUMP_SELFTEST, "\nFill memory before entering Self-refresh...");
                 for (waddr = (unsigned int *)base_addr; waddr  < (unsigned int *)end ; waddr++)
                 {
                         *waddr = (unsigned int)waddr;
                 }
-                printf("done\n");
+                LogMsg(LOG_LEVEL_INFO, FLAG_REGS_DUMP_SELFTEST, "done");
         }
         else
         {
@@ -133,16 +132,14 @@ void self_refresh_test(int verify, unsigned int base_addr, unsigned int size)
                         temp = *waddr;
                         if (temp != (unsigned int)waddr)
                         {
-                                printf("\nAt 0x%08x, expect 0x%08x, read back 0x%08x", (unsigned int)waddr, (unsigned int)waddr, temp);
+                                LogMsg(LOG_LEVEL_DEBUG, FLAG_REGS_DUMP_SELFTEST, "\nAt 0x%08x, expect 0x%08x, read back 0x%08x", (unsigned int)waddr, (unsigned int)waddr, temp);
                                 refresh_error++;
                         }
                 }
                 if (refresh_error)
-                        printf("\n\nSelf refresh fail !!!!!!!!!!!!!!!!!!!. error cnt = 0x%x", refresh_error);
+                        LogMsg(LOG_LEVEL_ERROR, FLAG_REGS_DUMP_SELFTEST, "\nSELF-REFRESH TEST FAIL. Error count = 0x%x", refresh_error);
                 else
-                        printf("\n\nSelf refresh Pass.");
-
-                printf("\nDDR self test mode test done!!");
+                        LogMsg(LOG_LEVEL_ERROR, FLAG_REGS_DUMP_SELFTEST, "\nSELF-REFRESH TEST PASS");
         }
 }
 
@@ -150,8 +147,6 @@ void phyinit_sequence_sync2(volatile unsigned short ld_phase,
 		volatile  unsigned short wrst_sel, volatile  unsigned short wckg_dly,
 		volatile  unsigned short int wck_en)
 {
-	// unsigned int tmp= read(0xf1000438);
-
 	// sync2 procedure
 	replace_val(CH0_PHY_Control_6, 1, 19, 0x00080000);		//MC_SYNC2_EN
 	replace_val(CH0_PHY_Control_6, ld_phase, 9, 0x00000200);//ld_phase update

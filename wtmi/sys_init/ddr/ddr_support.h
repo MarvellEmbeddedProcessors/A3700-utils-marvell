@@ -31,8 +31,18 @@
 *
 ***************************************************************************
 */
+
+#include "../sys.h"
+
 #define ll_write64(addr, data)                                  (*(volatile unsigned long long *)(uintptr_t)(addr)=data)                        //low level write
 #define ll_write32(addr, data)                                  (*(volatile unsigned int *) (addr)=data)                                        //low level write
 #define ll_read32(addr)                                         (*(volatile unsigned int *)(addr))                                              //low level read
 
+extern int debug_level;
+extern int debug_module;
+#define LogMsg(log_level, log_module, fmt, ...) do { if ( (DEBUG) && (log_level <= debug_level) && ((log_module & debug_module) > 0) ) { printf( fmt, ##__VA_ARGS__ ); } } while(0)
+
+enum training { PHYINIT_SYNC2=0, INIT_TIMING=1, TERM=2, QS_GATE=3, VREF_READ=4, VREF_WRITE=5, DLL_TUNE=6};
+
 void replace_val(unsigned int addr, unsigned int data, unsigned int offset, unsigned int mask);
+void logs_training_regs(enum training type);

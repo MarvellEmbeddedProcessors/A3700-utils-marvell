@@ -176,8 +176,8 @@ int sys_init_main(void)
 	set_ddr_type(CONFIG_DDR_TYPE);
 	set_ddr_topology_parameters(map);
 
-	ddr_para.log_level  = LOG_LEVEL_NONE;
-	ddr_para.flags      = FLAG_REGS_DUMP_NONE;
+	ddr_para.log_level  = LOG_LEVEL_ERROR;
+	ddr_para.flags      = FLAG_REGS_DUMP_ALL;
 
 	ddr_para.clock_init = setup_clock_tree;
 	ddr_para.speed      = get_ddr_clock();

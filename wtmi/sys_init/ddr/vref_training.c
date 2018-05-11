@@ -52,8 +52,10 @@ unsigned int vref_read_training(int num_of_cs, struct ddr_init_para init_para)
         unsigned int min=0, prev_min=0, max=0, prev_max=0, window_size = 0, prev_window_size=0, window_on=0;
 	unsigned int short_DLL=1;
 
+	LogMsg(LOG_LEVEL_DEBUG, FLAG_REGS_VREF_READ, "\nIncrement vref and perform dll tuning for each vref to find min/max vref setting");
 	for(vref_cnt=0x0; vref_cnt <= 0x3F; vref_cnt++)
         {
+		LogMsg(LOG_LEVEL_DEBUG, FLAG_REGS_VREF_READ, "\nSet VREF: 0x%02X", vref_cnt);
                 vdac_set(1, vref_cnt);
 		result_dll = DLL_tuning(2, num_of_cs, init_para, short_DLL, 0);			//mpr_mode=disabled, short_DLL method
                 if(result_dll)									//if DLL pass
@@ -80,6 +82,7 @@ unsigned int vref_read_training(int num_of_cs, struct ddr_init_para init_para)
                 }
                 else                                                                            //if DLL failed
                 {
+			LogMsg(LOG_LEVEL_DEBUG, FLAG_REGS_VREF_READ, "\nDLL tuning failed on atleast 1CS for this vref setting");
                         LAST_WINDOW:
                         if((window_size >= prev_window_size) || (prev_window_size == 0))
                         {
@@ -88,10 +91,9 @@ unsigned int vref_read_training(int num_of_cs, struct ddr_init_para init_para)
                                 window_on = 0;
                         }
                 }
-                if(init_para.log_level)
-                        printf(" max  = 0x%X min = 0x%X window_size = %d\n", max, min, window_size);
+                LogMsg(LOG_LEVEL_DEBUG, FLAG_REGS_VREF_READ, "\nmin  = 0x%X max = 0x%X window_size = %d\n", min, max, window_size);
         }
-        //printf("\nFinal max  = 0x%X Final min = 0x%X Final window size = 0x%X", prev_max, prev_min, window_size);
+        LogMsg(LOG_LEVEL_DEBUG, FLAG_REGS_VREF_READ, "\nFinal min  = 0x%X Final max = 0x%X", prev_min, prev_max);
         if(prev_min!=prev_max)                                                  		//prev values are the correct ones
                 return (((prev_max-prev_min)/2) + prev_min);					//PASS
         else
@@ -100,8 +102,6 @@ unsigned int vref_read_training(int num_of_cs, struct ddr_init_para init_para)
 
 int vref_set(unsigned int range, unsigned int VREF_training_value_DQ)
 {
-	// printf("\n\nvref = 0x%X\n", VREF_training_value_DQ);
-
 	// 1. set range
 	replace_val(CH0_DRAM_Config_4, range, 23, 0x00800000);
 
@@ -139,8 +139,10 @@ unsigned int vref_write_training(int num_of_cs, struct ddr_init_para init_para)
 	//enable vref training
 	en_dis_write_vref(1);
 
+        LogMsg(LOG_LEVEL_DEBUG, FLAG_REGS_VREF_WRITE, "\nIncrement vref and perform dll tuning for each vref to find min/max vref setting");
         for(vref_cnt=0x0; vref_cnt <= 0x3F; vref_cnt++)
         {
+                LogMsg(LOG_LEVEL_DEBUG, FLAG_REGS_VREF_WRITE, "\nSet VREF: 0x%02X", vref_cnt);
                 vref_set(1, vref_cnt);
 		result_dll = DLL_tuning(2, num_of_cs, init_para, short_DLL, 0);			//use short_DLL method
                 if(result_dll)                                                                  //if DLL pass
@@ -168,17 +170,17 @@ unsigned int vref_write_training(int num_of_cs, struct ddr_init_para init_para)
                 else                                                                            //if DLL failed
                 {
                         LAST_WINDOW:
-                        if((window_size >= prev_window_size) || (prev_window_size == 0))
+                        LogMsg(LOG_LEVEL_DEBUG, FLAG_REGS_VREF_WRITE, "\nDLL tuning failed on atleast 1CS for this vref setting");
+		        if((window_size >= prev_window_size) || (prev_window_size == 0))
                         {
                                 prev_max = max; prev_min = min; prev_window_size = window_size; //save old window values to be compared later
                                 max = 0; min = 0; window_size = 0;      //reset all windows
                                 window_on = 0;
                         }
                 }
-                if(init_para.log_level)
-                        printf(" max  = 0x%X min = 0x%X window_size = %d\n", max, min, window_size);
+		LogMsg(LOG_LEVEL_DEBUG, FLAG_REGS_VREF_WRITE, "\nmin  = 0x%X max = 0x%X window_size = %d\n", min, max, window_size);
         }
-        //printf("\nFinal max  = 0x%X Final min = 0x%X Final window size = 0x%X", prev_max, prev_min, window_size);
+        LogMsg(LOG_LEVEL_DEBUG, FLAG_REGS_VREF_WRITE, "\nFinal min  = 0x%X Final max = 0x%X", prev_min, prev_max);
 
 	//disable vref training
         en_dis_write_vref(0);

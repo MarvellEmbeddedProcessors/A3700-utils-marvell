@@ -96,7 +96,7 @@ void self_refresh_entry(void);
 void self_refresh_exit(void);
 void self_refresh_test(int verify, unsigned int base_addr, unsigned int size);
 void send_mr_commands(enum ddr_type type);
-int qs_gating(unsigned int base_addr, unsigned int cs, unsigned int log_en, struct ddr_init_result *result);
+int qs_gating(unsigned int base_addr, unsigned int cs, struct ddr_init_result *result);
 unsigned int vref_read_training(int num_of_cs, struct ddr_init_para init_para);
 unsigned int vref_write_training(int num_of_cs, struct ddr_init_para init_para);
 int vdac_set(unsigned int vref_range, unsigned int vref_ctrl);
