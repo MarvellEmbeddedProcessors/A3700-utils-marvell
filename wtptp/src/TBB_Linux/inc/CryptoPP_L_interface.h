@@ -105,7 +105,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define __CRYPTOPP_L_INTREFACE_H__
 
 
-#define INCLUDE_FILE(fname) <LIBDIR/fname>
+#define INCLUDE_FILE(fname) <INCDIR/fname>
 
 #include INCLUDE_FILE(hex.h)
 #include INCLUDE_FILE(rsa.h)
