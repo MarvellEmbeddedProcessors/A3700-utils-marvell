@@ -106,6 +106,7 @@ BASE_DIR_ABS	:=	$(shell pwd)
 ifeq "$(LIBDIR)" ""
 LIBDIR			+=		"$(BASE_DIR)/lib/cryptopp565"
 endif
+INCDIR			?=		$(LIBDIR)
 
 SRCDIR			+=		$(BASE_DIR)/src
 OUTDIR			=		$(BASE_DIR)/release
@@ -113,7 +114,7 @@ OUTDIR			=		$(BASE_DIR)/release
 INC_DIR_FLAGS	+=		-I$(BASE_DIR)/inc -I$(BASE_DIR)
 LIB_DIR_FLAGS	+=		-L$(LIBDIR)
 LIB_FLAGS 		+=		-lcryptopp
-DEF_FLAGS		+=		-DLIBDIR=$(LIBDIR)
+DEF_FLAGS		+=		-DINCDIR=$(INCDIR)
 CC_FLAGS 		+=		-std=c++11 --debug
 
 OBJS 			+=	$(OUTDIR)/Aspen_Strings.o \
