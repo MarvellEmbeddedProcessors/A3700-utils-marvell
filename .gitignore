@@ -1,7 +1,7 @@
 #ignore target directory
 wtmi/build/*
 #ignore all intermediate files
-*.[oa]
+*.[oad]
 *.elf
 *.dis
 *.bin
