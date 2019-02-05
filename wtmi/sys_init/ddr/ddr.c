@@ -94,11 +94,14 @@ void set_clear_trm(int set, unsigned int orig_val)
         }
 }
 
-void self_refresh_entry()
+void self_refresh_entry(enum ddr_type type)
 {
 	ll_write32(USER_COMMAND_0, 0x13000040);   // Enter self-refresh
-	while (!(ll_read32(DRAM_STATUS) & BIT2))
-		;
+	if (type == DDR4)
+		while (!(ll_read32(DRAM_STATUS) & BIT2))
+			;
+	else
+		wait_ns(1000);
 	LogMsg(LOG_LEVEL_INFO, FLAG_REGS_DUMP_SELFTEST, "\n\nNow in Self-refresh Mode");
 }
 

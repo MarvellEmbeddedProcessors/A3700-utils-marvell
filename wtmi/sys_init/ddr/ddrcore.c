@@ -101,7 +101,7 @@ int init_ddr(struct ddr_init_para init_para,
 			self_refresh_test(0, init_para.cs_wins[cs].base, 1024);
 
 	/* 1. enter self refresh */
-	self_refresh_entry();
+	self_refresh_entry(tc_ddr_type);
 
 	/* 2. setup clock */
 	init_para.clock_init();
