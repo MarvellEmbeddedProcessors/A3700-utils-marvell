@@ -74,7 +74,6 @@ int init_ddr(struct ddr_init_para init_para,
 	unsigned int vdac_value=0;
 	unsigned int vref_value=0;
 #endif
-
 	debug_level = init_para.log_level;
 	debug_module = init_para.flags;
 
@@ -101,7 +100,8 @@ int init_ddr(struct ddr_init_para init_para,
 			self_refresh_test(0, init_para.cs_wins[cs].base, 1024);
 
 	/* 1. enter self refresh */
-	self_refresh_entry(tc_ddr_type);
+	for (cs = 0; cs < tc_cs_num; cs++)
+		self_refresh_entry(cs, tc_ddr_type);
 
 	/* 2. setup clock */
 	init_para.clock_init();
@@ -136,7 +136,8 @@ int init_ddr(struct ddr_init_para init_para,
 	//dll_on_ddrphy();
 
 	/* 8. exit self refresh */
-	self_refresh_exit();
+	for (cs = 0; cs < tc_cs_num; cs++)
+		self_refresh_exit(cs);
 
 	/* 9. do MR command */
 	send_mr_commands(tc_ddr_type);

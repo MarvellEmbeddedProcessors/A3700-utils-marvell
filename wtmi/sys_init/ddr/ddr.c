@@ -36,6 +36,11 @@
 #include "ddr.h"
 #include "ddr_support.h"
 
+#define SELF_REFESH_STS(cs_num)        (BIT2 << (cs_num * 4))
+#define USER_CMD_0_CS_BIT(cs_num)      (BIT24 << (cs_num))
+#define USER_CMD_0_SELF_REFRESH_ENTERY (0x10000040)
+#define USER_CMD_0_SELF_REFRESH_EXIT   (0x10000080)
+
 void mc6_init_timing_selfrefresh(enum ddr_type type, unsigned int speed)
 {
         unsigned int wrval = 0, rdval = 0;
@@ -94,22 +99,31 @@ void set_clear_trm(int set, unsigned int orig_val)
         }
 }
 
-void self_refresh_entry(enum ddr_type type)
+void self_refresh_entry(u32 cs_num, enum ddr_type type)
 {
-	ll_write32(USER_COMMAND_0, 0x13000040);   // Enter self-refresh
+	u32 sts_mask = SELF_REFESH_STS(cs_num);
+
+	ll_write32(USER_COMMAND_0, (USER_CMD_0_SELF_REFRESH_ENTERY |
+		   USER_CMD_0_CS_BIT(cs_num)));
 	if (type == DDR4)
-		while (!(ll_read32(DRAM_STATUS) & BIT2))
+		while (!(ll_read32(DRAM_STATUS) & sts_mask))
 			;
 	else
 		wait_ns(1000);
-	LogMsg(LOG_LEVEL_INFO, FLAG_REGS_DUMP_SELFTEST, "\n\nNow in Self-refresh Mode");
+	LogMsg(LOG_LEVEL_INFO, FLAG_REGS_DUMP_SELFTEST,
+		"\n\nCS %d Now in Self-refresh Mode", cs_num);
 }
 
-void self_refresh_exit()
+void self_refresh_exit(u32 cs_num)
 {
-	ll_write32(USER_COMMAND_0, 0x13000080);   // Exit self-refresh
-	while((ll_read32(DRAM_STATUS) & BIT2)) {};
-	LogMsg(LOG_LEVEL_INFO, FLAG_REGS_DUMP_SELFTEST, "\nExited self-refresh ...\n");
+	u32 sts_mask = SELF_REFESH_STS(cs_num);
+
+	ll_write32(USER_COMMAND_0, (USER_CMD_0_SELF_REFRESH_EXIT |
+		   USER_CMD_0_CS_BIT(cs_num)));
+	while ((ll_read32(DRAM_STATUS) & sts_mask))
+		;
+	LogMsg(LOG_LEVEL_INFO, FLAG_REGS_DUMP_SELFTEST,
+		"\nCS %d Exited self-refresh ...\n", cs_num);
 }
 
 void self_refresh_test(int verify, unsigned int base_addr, unsigned int size)

@@ -92,8 +92,8 @@
 unsigned int DLL_tuning(unsigned int ratio, unsigned int num_of_cs, struct ddr_init_para init_para, unsigned int short_DLL, unsigned int mpr_mode);
 void mc6_init_timing_selfrefresh(enum ddr_type type, unsigned int speed);
 void set_clear_trm(int set, unsigned int val);
-void self_refresh_entry(enum ddr_type type);
-void self_refresh_exit(void);
+void self_refresh_entry(u32 cs_num, enum ddr_type type);
+void self_refresh_exit(u32 tc_cs_num);
 void self_refresh_test(int verify, unsigned int base_addr, unsigned int size);
 void send_mr_commands(enum ddr_type type);
 int qs_gating(unsigned int base_addr, unsigned int cs, struct ddr_init_result *result);
