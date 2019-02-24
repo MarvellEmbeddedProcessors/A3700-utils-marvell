@@ -71,8 +71,8 @@ int init_ddr(struct ddr_init_para init_para,
 	unsigned int disable_rl;
 #endif
 #ifdef DDR4_VREF_TRAINING
-	unsigned int vdac_value=0;
-	unsigned int vref_value=0;
+	int vdac_value = 0;
+	unsigned int vref_value = 0;
 #endif
 	debug_level = init_para.log_level;
 	debug_module = init_para.flags;
@@ -226,15 +226,12 @@ int init_ddr(struct ddr_init_para init_para,
 		LogMsg(LOG_LEVEL_INFO, FLAG_REGS_VREF_READ, "\nBefore vref read training:");
 		logs_training_regs(VREF_READ);
 		vdac_value = vref_read_training(tc_cs_num, init_para);
-		if(vdac_value != 0)				//training passed
-		{
+		if (vdac_value >= 0) {/*training passed*/
 			LogMsg(LOG_LEVEL_ERROR, FLAG_REGS_VREF_READ, "\nVREF READ TRAINING PASSED");
 			LogMsg(LOG_LEVEL_INFO, FLAG_REGS_VREF_READ, "\nFinal vdac_value 0x%02X\n", vdac_value);
-			vdac_set(1, vdac_value);                //Set the tuned vdac value
-                        result->ddr4.vref_read = ll_read32(PHY_Control_15);
-		}
-		else
-		{
+			vdac_set(1, vdac_value);/*Set the tuned vdac value*/
+			result->ddr4.vref_read = ll_read32(PHY_Control_15);
+		} else {
 			LogMsg(LOG_LEVEL_ERROR, FLAG_REGS_VREF_READ, "\nVREF READ TRAINING FAILED");
 			ret_val = -3;
 		}

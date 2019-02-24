@@ -47,7 +47,11 @@
 #define DLL_PHSEL_END		0x3F
 #define DLL_PHSEL_STEP		0x1
 
-unsigned int short_DLL_tune(unsigned int ratio, unsigned int cs, unsigned int cs_base, unsigned int mpr_en, unsigned short *ret_m);
+struct dll_tuning_info {
+	unsigned short left;
+	unsigned short right;
+	unsigned short medium;
+};
 
 static const unsigned int tune_patterns[] =
 {
@@ -267,7 +271,10 @@ static unsigned int mpr_read_Test(unsigned int start, unsigned int ddr_size)
         return 0;
 }
 
-unsigned int short_DLL_tune(unsigned int ratio, unsigned int cs, unsigned int cs_base, unsigned int mpr_en, unsigned short *ret_m)
+
+unsigned int short_DLL_tune(unsigned int ratio, unsigned int cs,
+			    unsigned int cs_base, unsigned int mpr_en,
+			    struct dll_tuning_info *ret)
 {
         unsigned short left, right, i;
         unsigned short medium;
@@ -316,27 +323,57 @@ unsigned int short_DLL_tune(unsigned int ratio, unsigned int cs, unsigned int cs
                 set_DLL(medium, medium);
 		LogMsg(LOG_LEVEL_DEBUG, FLAG_REGS_DLL_TUNE, "\n\t\tCS%d: Passing window: 0x%02X-0x%02X \t\tMedium = 0x%02X", cs, left, right, medium);
         }
-	*ret_m = medium;
-
+	ret->left = left;
+	ret->right = right;
+	ret->medium = medium;
 	//disable mpr mode
 	if(mpr_en)
 	{
 		ll_write32(CH0_DRAM_Config_3, (ll_read32(CH0_DRAM_Config_3) & (~0x00000040)));
 		ll_write32(USER_COMMAND_2, 0x13000800);
 	}
+	return 1;
+}
 
-        return 1;
+/*function will return the dll range for that verf.
+ *range <=0 means range is zero length
+ */
+int get_dll_range(unsigned int num_of_cs, struct ddr_init_para init_para)
+{
+	unsigned int cs;
+	/*common init with maximum range*/
+	struct dll_tuning_info common_info = {.left = DLL_PHSEL_START,
+					      .right = DLL_PHSEL_END,
+					      .medium = 0};
+	struct dll_tuning_info dll_info;
+
+	LogMsg(LOG_LEVEL_DEBUG, FLAG_REGS_DLL_TUNE,
+	       "\nPerform coarse DLL tuning:");
+	/*select the intersection of both CS*/
+	for (cs = 0; cs < num_of_cs; cs++) {
+		short_DLL_tune(2, cs, init_para.cs_wins[cs].base,
+			       0, &dll_info);
+		if (dll_info.left > common_info.left)
+			common_info.left = dll_info.left;
+		if (dll_info.right < common_info.right)
+			common_info.right = dll_info.right;
+	}
+	return common_info.right - common_info.left;
 }
 
 unsigned int DLL_tuning(unsigned int ratio, unsigned int num_of_cs, struct ddr_init_para init_para, unsigned int short_DLL, unsigned int mpr_mode)
 {
 	unsigned int cs = 0, res = 1;
 	unsigned short optimal[MAX_CS_NUM], medium[MAX_CS_NUM];
+	struct dll_tuning_info dll_info;
 
 	LogMsg(LOG_LEVEL_DEBUG, FLAG_REGS_DLL_TUNE, "\nPerform coarse DLL tuning:");
 	for (cs=0; cs<num_of_cs; cs++)
 	{
-		optimal[cs] = short_DLL_tune(ratio, cs, init_para.cs_wins[cs].base, mpr_mode, &medium[cs]);
+		optimal[cs] = short_DLL_tune(ratio, cs,
+					     init_para.cs_wins[cs].base,
+					     mpr_mode, &dll_info);
+		medium[cs] = dll_info.medium;
 		res &= optimal[cs];
 	}
 

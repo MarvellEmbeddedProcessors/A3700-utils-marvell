@@ -40,64 +40,26 @@ int vdac_set(unsigned int vref_range, unsigned int vref_ctrl)   //read vref trai
         replace_val(PHY_Control_15, vref_ctrl, 24, 0x3F000000);
         replace_val(PHY_Control_15, vref_range, 30, 0xC0000000);
         wait_ns(1000);
-
-//      printf("\nPHY CONTROL 15 %x", ll_read32(PHY_Control_15));
         return 0;
 }
 
-unsigned int vref_read_training(int num_of_cs, struct ddr_init_para init_para)
+int vref_read_training(int num_of_cs, struct ddr_init_para init_para)
 {
-	unsigned int result_dll=0;
-        unsigned int vref_cnt=0x0;
-        unsigned int min=0, prev_min=0, max=0, prev_max=0, window_size = 0, prev_window_size=0, window_on=0;
-	unsigned int short_DLL=1;
+	int dll_range = 0, best_range = 0, best_vref_cnt = -1;
+	unsigned int vref_cnt;
 
-	LogMsg(LOG_LEVEL_DEBUG, FLAG_REGS_VREF_READ, "\nIncrement vref and perform dll tuning for each vref to find min/max vref setting");
-	for(vref_cnt=0x0; vref_cnt <= 0x3F; vref_cnt++)
-        {
-		LogMsg(LOG_LEVEL_DEBUG, FLAG_REGS_VREF_READ, "\nSet VREF: 0x%02X", vref_cnt);
-                vdac_set(1, vref_cnt);
-		result_dll = DLL_tuning(2, num_of_cs, init_para, short_DLL, 0);			//mpr_mode=disabled, short_DLL method
-                if(result_dll)									//if DLL pass
-                {
-                        if((min == 0) && (window_on ==0))               			//set the left edge first time
-                        {
-                                min = vref_cnt;
-                                max = vref_cnt;
-                                window_size++;
-                                window_on=1;
-                        }
-                        else                                                                    //update right edge for every continuous pass
-                        {
-                                if(window_on == 0)
-                                {
-                                        min = vref_cnt;
-                                        window_on = 1;
-                                }
-                                max = vref_cnt;
-                                window_size++;
-				if(max==0x3F)
-                                        goto LAST_WINDOW;
-                        }
-                }
-                else                                                                            //if DLL failed
-                {
-			LogMsg(LOG_LEVEL_DEBUG, FLAG_REGS_VREF_READ, "\nDLL tuning failed on atleast 1CS for this vref setting");
-                        LAST_WINDOW:
-                        if((window_size >= prev_window_size) || (prev_window_size == 0))
-                        {
-                                prev_max = max; prev_min = min; prev_window_size = window_size; //save old window values to be compared later
-                                max = 0; min = 0; window_size = 0;      			//reset all windows
-                                window_on = 0;
-                        }
-                }
-                LogMsg(LOG_LEVEL_DEBUG, FLAG_REGS_VREF_READ, "\nmin  = 0x%X max = 0x%X window_size = %d\n", min, max, window_size);
-        }
-        LogMsg(LOG_LEVEL_DEBUG, FLAG_REGS_VREF_READ, "\nFinal min  = 0x%X Final max = 0x%X", prev_min, prev_max);
-        if(prev_min!=prev_max)                                                  		//prev values are the correct ones
-                return (((prev_max-prev_min)/2) + prev_min);					//PASS
-        else
-                return 0;									//FAIL
+	for (vref_cnt = 0x0; vref_cnt <= 0x3F; vref_cnt++) {
+		LogMsg(LOG_LEVEL_DEBUG, FLAG_REGS_VREF_READ,
+		       "\nSet VREF: 0x%02X", vref_cnt);
+		vdac_set(1, vref_cnt);
+		dll_range = get_dll_range(num_of_cs, init_para);
+		if (dll_range > best_range) {
+			best_range = dll_range;
+			best_vref_cnt = vref_cnt;
+		}
+
+	}
+	return best_vref_cnt;
 }
 
 int vref_set(unsigned int range, unsigned int VREF_training_value_DQ)
