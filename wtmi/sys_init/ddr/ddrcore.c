@@ -35,6 +35,7 @@
 #include "../sys.h"
 #include "ddr.h"
 #include "ddr_support.h"
+#include <stdbool.h>
 
 #define DDR3_QSGATING
 #define DDR4_VREF_TRAINING
@@ -275,16 +276,16 @@ int init_ddr(struct ddr_init_para init_para,
 	LogMsg(LOG_LEVEL_INFO, FLAG_REGS_DLL_TUNE, "\n\nDLL TUNING\n==============");
 	LogMsg(LOG_LEVEL_INFO, FLAG_REGS_DLL_TUNE, "\nBefore DLL tuning:");
 	logs_training_regs(DLL_TUNE);
-	dll_res = DLL_tuning(2, tc_cs_num, init_para, 0, 0);	//use long DLL method, mpr mode disabled
-	if(dll_res)						//training passed
-	{
-		result->dll_tune.dll_ctrl_b0 = ll_read32(CH0_PHY_DLL_control_B0);
-	        result->dll_tune.dll_ctrl_b1 = ll_read32(CH0_PHY_DLL_control_B1);
-        	result->dll_tune.dll_ctrl_adcm = ll_read32(CH0_PHY_DLL_control_ADCM);
+	dll_res = dll_tuning(2, tc_cs_num, &init_para, false, true);
+	if (dll_res > 0) {
+		result->dll_tune.dll_ctrl_b0 =
+			ll_read32(CH0_PHY_DLL_control_B0);
+		result->dll_tune.dll_ctrl_b1 =
+			ll_read32(CH0_PHY_DLL_control_B1);
+		result->dll_tune.dll_ctrl_adcm =
+			ll_read32(CH0_PHY_DLL_control_ADCM);
 		LogMsg(LOG_LEVEL_ERROR, FLAG_REGS_DLL_TUNE, "\nDLL TUNING PASSED\n");
-	}
-	else
-	{
+	} else {
 		LogMsg(LOG_LEVEL_ERROR, FLAG_REGS_DLL_TUNE, "\nDLL TUNING FAILED\n");
 		ret_val = -3;
 	}

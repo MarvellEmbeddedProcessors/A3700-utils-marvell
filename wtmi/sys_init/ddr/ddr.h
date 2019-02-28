@@ -89,8 +89,9 @@
 #define PHY_CONTROL_8				0xC000101C
 #define PHY_CONTROL_9				0xC0001020
 
-unsigned int DLL_tuning(unsigned int ratio, unsigned int num_of_cs, struct ddr_init_para init_para, unsigned int short_DLL, unsigned int mpr_mode);
-int get_dll_range(unsigned int num_of_cs, struct ddr_init_para init_para);
+int dll_tuning(unsigned int ratio, unsigned int num_of_cs,
+	       const struct ddr_init_para *init_para, bool mpr_mode,
+	       bool save_res);
 void mc6_init_timing_selfrefresh(enum ddr_type type, unsigned int speed);
 void set_clear_trm(int set, unsigned int val);
 void self_refresh_entry(u32 cs_num, enum ddr_type type);

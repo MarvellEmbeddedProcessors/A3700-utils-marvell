@@ -34,6 +34,7 @@
 #include "../sys.h"
 #include "ddr.h"
 #include "ddr_support.h"
+#include <stdbool.h>
 
 int vdac_set(unsigned int vref_range, unsigned int vref_ctrl)   //read vref training
 {
@@ -52,7 +53,7 @@ int vref_read_training(int num_of_cs, struct ddr_init_para init_para)
 		LogMsg(LOG_LEVEL_DEBUG, FLAG_REGS_VREF_READ,
 		       "\nSet VREF: 0x%02X", vref_cnt);
 		vdac_set(1, vref_cnt);
-		dll_range = get_dll_range(num_of_cs, init_para);
+		dll_range = dll_tuning(2, num_of_cs, &init_para, false, false);
 		if (dll_range > best_range) {
 			best_range = dll_range;
 			best_vref_cnt = vref_cnt;
@@ -96,7 +97,6 @@ unsigned int vref_write_training(int num_of_cs, struct ddr_init_para init_para)
         unsigned int result_dll=0;
         unsigned int vref_cnt=0x0;
         unsigned int min=0, prev_min=0, max=0, prev_max=0, window_size = 0, prev_window_size=0, window_on=0;
-	unsigned int short_DLL=1;
 
 	//enable vref training
 	en_dis_write_vref(1);
@@ -106,8 +106,9 @@ unsigned int vref_write_training(int num_of_cs, struct ddr_init_para init_para)
         {
                 LogMsg(LOG_LEVEL_DEBUG, FLAG_REGS_VREF_WRITE, "\nSet VREF: 0x%02X", vref_cnt);
                 vref_set(1, vref_cnt);
-		result_dll = DLL_tuning(2, num_of_cs, init_para, short_DLL, 0);			//use short_DLL method
-                if(result_dll)                                                                  //if DLL pass
+		result_dll = dll_tuning(2, num_of_cs, &init_para, false, false);
+
+		if (result_dll > 0) /* if DLL pass */
                 {
                         if((min == 0) && (window_on ==0))                                       //set the left edge first time
                         {
