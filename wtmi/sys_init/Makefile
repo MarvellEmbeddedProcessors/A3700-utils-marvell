@@ -145,11 +145,11 @@ all: $(CFG_HEADER) $(COBJ) $(AOBJ) $(BINPATH)
 $(CFG_HEADER):
 	$(call filechk,autoconf.h)
 
-%.o: %.c
+%.o: %.c $(CFG_HEADER)
 	$(ECHO) "  CC    $<"
 	$(CC) -MMD -MP -c $(CFLAGS) $(CPPFLAGS) -o $@ $(subst .o,.c,$@)
 
-%.o: %.S
+%.o: %.S $(CFG_HEADER)
 	$(ECHO) "  AS    $<"
 	$(AS) $(ASFLAGS) -o $@ $(subst .o,.S,$@)
 
@@ -161,4 +161,4 @@ $(BINPATH):
 clean:
 	$(ECHO) "  SYS INIT CLEAN"
 	@$(RM) -rf $(BINPATH)
-	@$(RM) -f autoconf.h *.o *.elf *.bin *.d *dis ddr/*.o ddr/*.d $(COMMON_PATH)/*.o $(LDSCRIPT)
+	@$(RM) -f $(CFG_HEADER) *.o *.elf *.bin *.d *dis ddr/*.o ddr/*.d $(COMMON_PATH)/*.o $(LDSCRIPT)
