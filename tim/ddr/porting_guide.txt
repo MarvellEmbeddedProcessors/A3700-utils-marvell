@@ -59,6 +59,9 @@ The configuration file is like below::
 	ddr_cas_latency=11
 	ddr_cas_write_latency=8
 
+	#twin-die combined
+	mv_ddr_twin_die=0
+
 5. configuration items
 ----------------------
 ::
@@ -83,6 +86,10 @@ The configuration file is like below::
 	tips:   optional, use default value if not set
 	        default value: DDR3-800Mhz-1600K(CL=11, CWL=8)
 	                       DDR4-800Mhz-2400R(CL=12, CWL=11)
+
+	name: mv_ddr_twin_die
+	0 = twin-die combined
+	1 = single die(regular)
 
 	name:   ddr_speedbin_index
 	value:
