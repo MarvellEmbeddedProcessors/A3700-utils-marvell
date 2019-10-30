@@ -121,6 +121,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include INCLUDE_FILE(files.h)
 #include INCLUDE_FILE(secblock.h)
 
+using CryptoPP::byte;
 
 namespace CryptoPP {
 
@@ -166,7 +167,7 @@ class TF_SignerImpl_Hash : public TF_ObjectImpl<TF_SignerBase_Hash, SCHEME_OPTIO
 
 // Struct RSASS_Hash inherits this class..
 // This class contains the modified signer instance
-template <class STANDARD, class H, class KEYS, class ALG_INFO = TF_SS<STANDARD, H, KEYS, int> >	// VC60 workaround: doesn't work if KEYS is first parameter
+template <class STANDARD, class H, class KEYS, class ALG_INFO = TF_SS<KEYS, STANDARD, H, int> >
 class TF_SS_Hash : public KEYS
 {
 public:
@@ -310,7 +311,7 @@ class DL_SignerImpl_Hash : public DL_ObjectImpl<DL_SignerBase_Hash<typename SCHE
 public:
 	PK_MessageAccumulator * NewSignatureAccumulator(RandomNumberGenerator &rng) const
 	{
-		member_ptr<PK_MessageAccumulatorBase> p(new PK_MessageAccumulatorImpl<CPP_TYPENAME SCHEME_OPTIONS::HashFunction>);
+		member_ptr<PK_MessageAccumulatorBase> p(new PK_MessageAccumulatorImpl<typename SCHEME_OPTIONS::HashFunction>);
 		this->RestartMessageAccumulator(rng, *p);
 		return p.release();
 	}
