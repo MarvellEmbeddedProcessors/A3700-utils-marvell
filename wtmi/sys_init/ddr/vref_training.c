@@ -49,7 +49,7 @@ int vref_read_training(int num_of_cs, struct ddr_init_para init_para)
 	int dll_range = 0, best_range = 0, best_vref_cnt = -1;
 	unsigned int vref_cnt;
 
-	for (vref_cnt = 0x0; vref_cnt <= 0x3F; vref_cnt++) {
+	for (vref_cnt = 0x3f; vref_cnt > 0; vref_cnt--) {
 		LogMsg(LOG_LEVEL_DEBUG, FLAG_REGS_VREF_READ,
 		       "\nSet VREF: 0x%02X", vref_cnt);
 		vdac_set(1, vref_cnt);
@@ -58,7 +58,6 @@ int vref_read_training(int num_of_cs, struct ddr_init_para init_para)
 			best_range = dll_range;
 			best_vref_cnt = vref_cnt;
 		}
-
 	}
 	return best_vref_cnt;
 }
