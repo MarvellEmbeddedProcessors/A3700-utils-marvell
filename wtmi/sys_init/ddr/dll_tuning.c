@@ -46,7 +46,7 @@
 #define DLL_PHSEL_START		0x00
 #define DLL_PHSEL_END		0x3F
 #define DLL_PHSEL_STEP		0x1
-#define BYTE_MASK(byte)		(0xff00ff << (byte))
+#define BYTE_MASK(byte)		(0xff00ff << (byte * 8))
 #define BYTE_CONTROL(byte)	(PHY_DLL_CONTROL_BASE + (byte) * 4)
 #define DLL_MASTER		16
 #define DLL_NEG			24
