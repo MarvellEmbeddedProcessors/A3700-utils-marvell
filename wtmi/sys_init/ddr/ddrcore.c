@@ -37,8 +37,91 @@
 #include "ddr_support.h"
 #include <stdbool.h>
 
+#undef VALIDATION_EYE
+
 #define DDR3_QSGATING
 #define DDR4_VREF_TRAINING
+
+#define BYTE_ERROR1(a, b, mask)	(((a) & (mask)) != ((b) & (mask)))
+
+#ifdef VALIDATION_EYE
+void rx_sweep_test(void);
+static int cpu_test(int byte_mask);
+
+static const unsigned int pattern[] = {
+	0x0101fefe,
+	0xfefe0101,
+	0x0202fdfd,
+	0xfdfd0202,
+	0x0404fbfb,
+	0xfbfb0404,
+	0x0808f7f7,
+	0xf7f70808,
+	0x1010efef,
+	0xefef1010,
+	0x2020dfdf,
+	0xdfdf2020,
+	0x4040bfbf,
+	0xbfbf4040,
+	0x80807f7f,
+	0x7f7f8080,
+	0xf7f78080,
+	0x8080f7f7,
+	0xf7f7fbfb,
+	0xfbfbf7f7,
+	0x40407f7f,
+	0x7f7f4040,
+	0x80804040,
+	0x80804040,
+	0xbfbf4040,
+	0xbfbf4040,
+	0xdfdf2020,
+	0x2020dfdf,
+	0xdfdf2020,
+	0x1010efef,
+	0x1010efef,
+	0x10108080,
+	0x80801010,
+	0xf7f70808,
+	0x0808f7f7,
+	0x0404fbfb,
+	0xfbfb4040,
+	0x4040fbfb,
+	0x2020fdfd,
+	0xfdfd2020,
+	0x2020fdfd,
+	0x1010efef,
+	0xfefe0101,
+	0x10108080,
+	0x80800101,
+	0x7f7f8080,
+	0x80807f7f,
+	0x4040bfbf,
+	0xbfbf4040,
+	0x40402020,
+	0x20204040,
+	0xdfdf2020,
+	0x2020dfdf,
+	0x1010efef,
+	0xefef1010,
+	0xffff0000,
+	0x0000ffff,
+	0xffff0000,
+	0x0000ffff,
+	0xffff0000,
+	0x0000ffff,
+	0xffff0000,
+	0x00000000,
+	0x00000000,
+	0xffff0000,
+	0x0000ffff,
+	0xffff0000,
+	0x0000ffff,
+	0xffff0000,
+	0x0000ffff,
+	0xffff0000
+};
+#endif
 
 enum ddr_type tc_ddr_type;
 unsigned int tc_cs_num;
@@ -317,6 +400,140 @@ int init_ddr(struct ddr_init_para init_para,
 	LogMsg(LOG_LEVEL_INFO, FLAG_REGS_DUMP_ALL, "\n\tCH0_PHY_DLL_control_B0[0x%08X]: 0x%08X", CH0_PHY_DLL_control_B0, ll_read32(CH0_PHY_DLL_control_B0));
         LogMsg(LOG_LEVEL_INFO, FLAG_REGS_DUMP_ALL, "\n\tCH0_PHY_DLL_control_B1[0x%08X]: 0x%08X", CH0_PHY_DLL_control_B1, ll_read32(CH0_PHY_DLL_control_B1));
         LogMsg(LOG_LEVEL_INFO, FLAG_REGS_DUMP_ALL, "\n\tCH0_PHY_DLL_control_ADCM[0x%08X]: 0x%08X\n", CH0_PHY_DLL_control_ADCM, ll_read32(CH0_PHY_DLL_control_ADCM));
+
+#ifdef VALIDATION_EYE
+	rx_sweep_test();
+#endif
 	return ret_val;
 }
+#ifdef VALIDATION_EYE
+static int cpu_test(int byte_mask)
+{
+	int res = 0;
+	int *uiSdramOffset = (int *)0x60000000;
+	int i, pattern_end;
 
+	pattern_end = sizeof(pattern) / sizeof(pattern[0]);
+
+
+	for (i = 0; i < pattern_end; i++)
+		(*uiSdramOffset++) = pattern[i];
+
+
+	uiSdramOffset = (int *)0x60000000;
+	for (i = 0; i < pattern_end; i++)
+		if (BYTE_ERROR1((*uiSdramOffset++),
+				pattern[i], byte_mask))
+			res++;
+
+
+	uiSdramOffset = (int *)0x61000000;
+	for (i = 0; i < pattern_end; i++)
+		(*uiSdramOffset++) = pattern[i];
+
+	uiSdramOffset = (int *)0x61000000;
+	for (i = 0; i < pattern_end; i++)
+		if (BYTE_ERROR1((*uiSdramOffset++),
+				pattern[i], byte_mask))
+			res++;
+
+	uiSdramOffset = (int *)0xa0000000;
+	for (i = 0; i < pattern_end; i++)
+		(*uiSdramOffset++) = pattern[i];
+
+	uiSdramOffset = (int *)0xa0000000;
+	for (i = 0; i < pattern_end; i++)
+		if (BYTE_ERROR1((*uiSdramOffset++),
+				pattern[i], byte_mask))
+			res++;
+
+	uiSdramOffset = (int *)0xa1000000;
+	for (i = 0; i < pattern_end; i++)
+		(*uiSdramOffset++) = pattern[i];
+
+	uiSdramOffset = (int *)0xa1000000;
+	for (i = 0; i < pattern_end; i++)
+		if (BYTE_ERROR1((*uiSdramOffset++),
+				pattern[i], byte_mask))
+			res++;
+
+	return res;
+
+}
+void set_adll(unsigned int addr, unsigned int data, unsigned int offset)
+{
+	int mask;
+	unsigned int w32RegVal;
+	int data_val;
+
+	mask = 0x3f << offset;
+	data_val =  data << offset;
+	data_val &= mask;
+	w32RegVal = ll_read32(addr);
+	w32RegVal &= ~mask;
+	w32RegVal |= data_val;
+	ll_write32(addr, w32RegVal);
+}
+
+void rx_sweep_test(void)
+{
+	int  byte, addr, adll, res, vref, loop, offset, range,
+		m_b0, n_b0, m_b1, n_b1, byte_mask;
+
+	printf("&&&&&&&&&&& RX SWEEP &&&&&&&&&&&&&&\n");
+	int vref_default = ll_read32(PHY_Control_15);
+
+	int vref_val =  (vref_default & 0x3F000000) >> 24;
+
+	int adll_byte0_default = ll_read32(0xc0001050);
+
+	m_b0 = (adll_byte0_default & 0x3F0000) >> 16;
+	n_b0 = (adll_byte0_default & 0x3F000000) >> 24;
+	int adll_byte1_default = ll_read32(0xc0001054);
+
+	m_b1 = (adll_byte1_default & 0x3F0000) >> 16;
+	n_b1 = (adll_byte1_default & 0x3F000000) >> 24;
+
+	printf("m_b0: 0x%x n_b0: 0x%x m_b1: 0x%x n_b1: 0x%x\n"
+		, m_b0, n_b0, m_b1, n_b1);
+
+	for (byte = 0; byte < 2; byte++) {
+		printf("########### byte : %d ###############\n", byte);
+		addr = (byte == 0) ? 0xc0001050 : 0xc0001054;
+		byte_mask = (byte == 0) ? 0x00ff00ff : 0xff00ff00;
+		for (loop = 0; loop < 2 ; loop++) {
+			printf("########### loop : %d ###############\n"
+				, loop);
+			offset = (loop == 0) ? 16 : 24;
+			for (vref = 0x3f; vref > 0 ; vref--) {
+				range = 1;
+				vdac_set(range, vref);
+				for (adll = 0; adll < 64; adll++) {
+					res = 0;
+					set_adll(addr, adll, offset);
+					res = cpu_test(byte_mask);
+					if ((range == 1) &&
+						(vref == vref_val)) {
+						if (adll == m_b0)
+							res = -1;
+						else if (adll == n_b0)
+							res = -2;
+						else if (adll == m_b1)
+							res = -3;
+						else if (adll == n_b1)
+							res = -4;
+					}
+					printf("%d, ", res);
+				}
+				printf("\n");
+			}
+
+			/*restore defaults*/
+			ll_write32(0xc0001050, adll_byte0_default);
+			ll_write32(0xc0001054, adll_byte1_default);
+			ll_write32(PHY_Control_15, vref_default);
+		}
+		printf("\n");
+	}
+}
+#endif
