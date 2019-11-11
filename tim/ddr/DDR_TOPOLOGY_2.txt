@@ -20,3 +20,6 @@ ddr_bus_width_index=2
 
 #4Gbits (512MB)
 ddr_mem_size_index=3
+
+#twin-die combined
+ddr_twin_die_index=1
