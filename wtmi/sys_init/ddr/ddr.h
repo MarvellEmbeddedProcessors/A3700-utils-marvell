@@ -36,6 +36,7 @@
 
 #include "ddrcore.h"
 
+#define CH0_MC_STATUS				0xC0000004
 #define DRAM_STATUS				0xC0000008
 #define CH0_Dram_Config_1			0xC0000300
 #define CH0_Dram_Config_2			0xC0000304
@@ -95,6 +96,7 @@ int dll_tuning(unsigned int ratio, unsigned int num_of_cs,
 void mc6_init_timing_selfrefresh(enum ddr_type type, unsigned int speed);
 void set_clear_trm(int set, unsigned int val);
 void self_refresh_entry(u32 cs_num, enum ddr_type type);
+void wait_for_mc_idle(void);
 void self_refresh_exit(u32 tc_cs_num);
 void self_refresh_test(int verify, unsigned int base_addr, unsigned int size);
 void send_mr_commands(enum ddr_type type);

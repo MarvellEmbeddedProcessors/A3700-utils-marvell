@@ -36,10 +36,11 @@
 #include "ddr.h"
 #include "ddr_support.h"
 
-#define SELF_REFESH_STS(cs_num)        (BIT2 << (cs_num * 4))
+#define SELF_REFRESH_STS(cs_num)        (BIT2 << (cs_num * 4))
 #define USER_CMD_0_CS_BIT(cs_num)      (BIT24 << (cs_num))
-#define USER_CMD_0_SELF_REFRESH_ENTERY (0x10000040)
+#define USER_CMD_0_SELF_REFRESH_ENTRY (0x10000040)
 #define USER_CMD_0_SELF_REFRESH_EXIT   (0x10000080)
+#define USER_CMD_0_WCB_DRAIN_REQ (0x10000002)
 
 void mc6_init_timing_selfrefresh(enum ddr_type type, unsigned int speed)
 {
@@ -98,25 +99,43 @@ void set_clear_trm(int set, unsigned int orig_val)
                 ll_write32(CH0_PHY_Control_2, wrval);
         }
 }
+void wait_for_mc_idle(void)
+{
+	int timeout = 322; /* 50us loop time */
+
+	ll_write32(USER_COMMAND_0, USER_CMD_0_WCB_DRAIN_REQ);
+	while(timeout && (ll_read32(CH0_MC_STATUS) != 0xd9fff))
+	{
+		timeout--;
+	}
+	LogMsg(LOG_LEVEL_INFO, FLAG_REGS_DUMP_ALL, "\nCH0_MC_STATUS[%08X] = %08X", CH0_MC_STATUS,
+		ll_read32(CH0_MC_STATUS));
+}
 
 void self_refresh_entry(u32 cs_num, enum ddr_type type)
 {
-	u32 sts_mask = SELF_REFESH_STS(cs_num);
+	u32 timeout = 322; /* 50us timeout */
+	u32 sts_mask = SELF_REFRESH_STS(cs_num);
 
-	ll_write32(USER_COMMAND_0, (USER_CMD_0_SELF_REFRESH_ENTERY |
+	ll_write32(USER_COMMAND_0, (USER_CMD_0_SELF_REFRESH_ENTRY |
 		   USER_CMD_0_CS_BIT(cs_num)));
 	if (type == DDR4)
-		while (!(ll_read32(DRAM_STATUS) & sts_mask))
-			;
+	{
+		while(timeout && !(ll_read32(DRAM_STATUS) & sts_mask))
+			timeout--;
+		if(timeout == 0)
+			LogMsg(LOG_LEVEL_ERROR, FLAG_REGS_DUMP_SELFTEST, "\nSELF REFRESH ENTRY TIMEOUT");
+	}
 	else
 		wait_ns(1000);
+
 	LogMsg(LOG_LEVEL_INFO, FLAG_REGS_DUMP_SELFTEST,
 		"\n\nCS %d Now in Self-refresh Mode", cs_num);
 }
 
 void self_refresh_exit(u32 cs_num)
 {
-	u32 sts_mask = SELF_REFESH_STS(cs_num);
+	u32 sts_mask = SELF_REFRESH_STS(cs_num);
 
 	ll_write32(USER_COMMAND_0, (USER_CMD_0_SELF_REFRESH_EXIT |
 		   USER_CMD_0_CS_BIT(cs_num)));
@@ -128,38 +147,36 @@ void self_refresh_exit(u32 cs_num)
 
 void self_refresh_test(int verify, unsigned int base_addr, unsigned int size)
 {
-        unsigned int end, temp;
-        unsigned int *waddr, refresh_error = 0;
+	unsigned int end, temp;
+	unsigned int *waddr, refresh_error = 0;
 
-        end = base_addr + size;
+	end = base_addr + size;
 
-        if(!verify)
-        {
-                // Write pattern
-                LogMsg(LOG_LEVEL_INFO, FLAG_REGS_DUMP_SELFTEST, "\nFill memory before entering Self-refresh...");
-                for (waddr = (unsigned int *)base_addr; waddr  < (unsigned int *)end ; waddr++)
-                {
-                        *waddr = (unsigned int)waddr;
-                }
-                LogMsg(LOG_LEVEL_INFO, FLAG_REGS_DUMP_SELFTEST, "done");
-        }
-        else
-        {
-                // Check data after exit self refresh
-                for (waddr = (unsigned int *)base_addr; waddr  < (unsigned int *)end ; waddr++)
-                {
-                        temp = *waddr;
-                        if (temp != (unsigned int)waddr)
-                        {
-                                LogMsg(LOG_LEVEL_DEBUG, FLAG_REGS_DUMP_SELFTEST, "\nAt 0x%08x, expect 0x%08x, read back 0x%08x", (unsigned int)waddr, (unsigned int)waddr, temp);
-                                refresh_error++;
-                        }
-                }
-                if (refresh_error)
-                        LogMsg(LOG_LEVEL_ERROR, FLAG_REGS_DUMP_SELFTEST, "\nSELF-REFRESH TEST FAIL. Error count = 0x%x", refresh_error);
-                else
-                        LogMsg(LOG_LEVEL_ERROR, FLAG_REGS_DUMP_SELFTEST, "\nSELF-REFRESH TEST PASS");
-        }
+	// Write pattern
+	LogMsg(LOG_LEVEL_INFO, FLAG_REGS_DUMP_SELFTEST, "\nFill memory before entering Self-refresh...");
+	for (waddr = (unsigned int *)base_addr; waddr  < (unsigned int *)end ; waddr++)
+	{
+		*waddr = (unsigned int)waddr;
+	}
+	LogMsg(LOG_LEVEL_INFO, FLAG_REGS_DUMP_SELFTEST, "done");
+
+	if(verify)
+	{
+		// Check data after exit self refresh
+		for (waddr = (unsigned int *)base_addr; waddr  < (unsigned int *)end ; waddr++)
+		{
+			temp = *waddr;
+			if (temp != (unsigned int)waddr)
+			{
+				LogMsg(LOG_LEVEL_DEBUG, FLAG_REGS_DUMP_SELFTEST, "\nAt 0x%08x, expect 0x%08x, read back 0x%08x", (unsigned int)waddr, (unsigned int)waddr, temp);
+				refresh_error++;
+			}
+		}
+		if (refresh_error)
+			LogMsg(LOG_LEVEL_ERROR, FLAG_REGS_DUMP_SELFTEST, "\nSELF-REFRESH TEST FAIL. Error count = 0x%x", refresh_error);
+		else
+			LogMsg(LOG_LEVEL_ERROR, FLAG_REGS_DUMP_SELFTEST, "\nSELF-REFRESH TEST PASS");
+	}
 }
 
 void phyinit_sequence_sync2(volatile unsigned short ld_phase,

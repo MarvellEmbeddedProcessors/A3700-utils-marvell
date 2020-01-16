@@ -178,12 +178,14 @@ int init_ddr(struct ddr_init_para init_para,
 		 * available for memory test. But the boot image is pre-
 		 * loaded and located at 0x0041.0000. Avoiding wripping
 		 * out the image data, only fill the test pattern to the
-		 * first 1KB memory per each chip select and validate by read 
+		 * first 1KB memory per each chip select and validate by read
 		 * that the pattern is correct.
 		 */
 		for(cs=0; cs<tc_cs_num; cs++)
 			self_refresh_test(1, init_para.cs_wins[cs].base, 1024);
 
+	/* 0. Drain WCB and check for various FIFOs to make sure they are all empty */
+	wait_for_mc_idle();
 
 	/* 1. enter self refresh */
 	for (cs = 0; cs < tc_cs_num; cs++)
