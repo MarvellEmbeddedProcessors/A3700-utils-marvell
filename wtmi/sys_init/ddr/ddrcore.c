@@ -178,10 +178,12 @@ int init_ddr(struct ddr_init_para init_para,
 		 * available for memory test. But the boot image is pre-
 		 * loaded and located at 0x0041.0000. Avoiding wripping
 		 * out the image data, only fill the test pattern to the
-		 * first 1KB memory per each chip select.
+		 * first 1KB memory per each chip select and validate by read 
+		 * that the pattern is correct.
 		 */
 		for(cs=0; cs<tc_cs_num; cs++)
-			self_refresh_test(0, init_para.cs_wins[cs].base, 1024);
+			self_refresh_test(1, init_para.cs_wins[cs].base, 1024);
+
 
 	/* 1. enter self refresh */
 	for (cs = 0; cs < tc_cs_num; cs++)
@@ -226,10 +228,6 @@ int init_ddr(struct ddr_init_para init_para,
 	/* 9. do MR command */
 	send_mr_commands(tc_ddr_type);
 
-	/* Test the pattern written correctly after exiting self-refresh */
-	if (!init_para.warm_boot)
-		for(cs=0; cs<tc_cs_num; cs++)
-			self_refresh_test(1, init_para.cs_wins[cs].base, 1024);
 
 	if(init_para.warm_boot)
         {
@@ -400,6 +398,11 @@ int init_ddr(struct ddr_init_para init_para,
 	LogMsg(LOG_LEVEL_INFO, FLAG_REGS_DUMP_ALL, "\n\tCH0_PHY_DLL_control_B0[0x%08X]: 0x%08X", CH0_PHY_DLL_control_B0, ll_read32(CH0_PHY_DLL_control_B0));
         LogMsg(LOG_LEVEL_INFO, FLAG_REGS_DUMP_ALL, "\n\tCH0_PHY_DLL_control_B1[0x%08X]: 0x%08X", CH0_PHY_DLL_control_B1, ll_read32(CH0_PHY_DLL_control_B1));
         LogMsg(LOG_LEVEL_INFO, FLAG_REGS_DUMP_ALL, "\n\tCH0_PHY_DLL_control_ADCM[0x%08X]: 0x%08X\n", CH0_PHY_DLL_control_ADCM, ll_read32(CH0_PHY_DLL_control_ADCM));
+
+        /* write and read Sanity check */
+        if (!init_para.warm_boot)
+                for(cs=0; cs<tc_cs_num; cs++)
+                        self_refresh_test(1, init_para.cs_wins[cs].base, 1024);
 
 #ifdef VALIDATION_EYE
 	rx_sweep_test();
