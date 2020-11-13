@@ -20,6 +20,3 @@ ddr_bus_width_index=2
 
 #8Gbits (1GB)
 ddr_mem_size_index=4
-
-#ddr preset config
-ddr_preset_conf=espressobin-ddr4-2cs-2g.txt

@@ -20,7 +20,6 @@ usage () {
 	echo "  ddr_bus_width_index"
 	echo "  ddr_cs_mask"
 	echo "  ddr_mem_size_index"
-	echo "  ddr_preset_conf"
 	exit 1
 }
 
@@ -67,8 +66,6 @@ ddr_mem_size_index)
 		let mem_size_index=mem_size_index-1
 	done
 	value=$mem_size
-	;;
-ddr_preset_conf)
 	;;
 *)
 	echo "unsupported DDR parameter $2!"
