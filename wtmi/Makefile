@@ -32,20 +32,21 @@ TOOLCHAIN_CHECK = \
 		exit 1; \
 	fi
 
-all: tools $(BINPATH) $(WTMI_IMG) $(SYS_INIT_IMG)
+all: tools $(MULTI_IMG)
+
+$(MULTI_IMG): $(WTMI_PAD_IMG) $(SYS_INIT_IMG)
+	$(MKDIR) $(BINPATH)
 	cat $(WTMI_PAD_IMG) $(SYS_INIT_IMG) > $(MULTI_IMG)
 
-$(BINPATH):
-	@$(MKDIR) $(BINPATH)
-
-$(SYS_INIT_IMG): $(WTMI_PAD_IMG)
+$(SYS_INIT_IMG): $(WTMI_PAD_IMG) FORCE
 	${MAKE} -C sys_init LOAD_OFFSET=$(shell wc -c < $(WTMI_PAD_IMG)) COMMON_PATH=$(COMMON_PATH) CROSS_CM3=$(CROSS_CM3)
 
 $(WTMI_PAD_IMG): $(WTMI_IMG_REL)
+	$(MKDIR) $(BINPATH)
 	cp -f $(WTMI_IMG_REL) $(WTMI_PAD_IMG)
 	truncate -s %16 $(WTMI_PAD_IMG)
 
-$(FUSE_IMG):
+$(FUSE_IMG): FORCE
 	${MAKE} -C fuse COMMON_PATH=$(COMMON_PATH) CROSS_CM3=$(CROSS_CM3)
 
 clean:
@@ -55,3 +56,5 @@ clean:
 
 tools:
 	@$(TOOLCHAIN_CHECK)
+
+FORCE:;
