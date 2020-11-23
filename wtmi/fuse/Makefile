@@ -86,3 +86,5 @@ clean:
 	$(ECHO) "  CLEAN"
 	@$(RM) -rf $(BINPATH)
 	@$(RM) -f *.o $(COMMON_PATH)/*.o *.elf *.bin *dis
+
+.PHONY: all clean

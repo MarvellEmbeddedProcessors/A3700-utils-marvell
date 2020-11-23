@@ -29,3 +29,5 @@ clean:
 	${Q}${MAKE} -C wtmi clean
 	@rm -f tim/ddr/ddr_static.txt tim/ddr/clocks_ddr.txt
 	${Q}${MAKE} PLATFORM=a3700 --no-print-directory -C ${MV_DDR_PATH} DDR_TYPE=$(DDR_TYPE) clean
+
+.PHONY: all mv_ddr WTMI clean

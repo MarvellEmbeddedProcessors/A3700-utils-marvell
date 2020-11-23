@@ -58,3 +58,4 @@ tools:
 	@$(TOOLCHAIN_CHECK)
 
 FORCE:;
+.PHONY: all clean tools FORCE
