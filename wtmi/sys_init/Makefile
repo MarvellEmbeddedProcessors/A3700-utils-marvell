@@ -123,6 +123,7 @@ CONFIG_DEV_CAP   := $(shell $(GET_DDR_PARAMS) $(DDR_TOPOLOGY_FILE) ddr_mem_size_
 
 define filechk_autoconf.h
 	(echo \#define DEBUG $(DEBUG);\
+	echo \#define LOAD_ADDR $(LOAD_ADDR);\
 	echo \#define WTMI_CLOCK $(WTMI_CLOCK);\
 	echo \#define CONFIG_DDR_TYPE $(CONFIG_DDR_TYPE);\
 	echo \#define CONFIG_BUS_WIDTH $(CONFIG_BUS_WIDTH);\
@@ -133,11 +134,18 @@ endef
 
 .SILENT:
 
-all: $(CFG_HEADER) $(COBJ) $(AOBJ) $(BINPATH)
-	rm -f ./$(LDSCRIPT)
+all: $(BINPATH)/sys_init.bin
+
+$(LDSCRIPT): $(COMMON_PATH)/template.ld $(CFG_HEADER)
 	$(SED) 's|. = LOAD_ADDR|. = $(LOAD_ADDR)|1' $(COMMON_PATH)/template.ld > ./$(LDSCRIPT)
+
+$(BINPATH)/sys_init.elf: $(LDSCRIPT) $(AOBJ) $(COBJ)
 	$(ECHO) "  CC    $(LDFLAGS)  $(AOBJ)  $(COBJ) -o $(BINPATH)/sys_init.elf"
+	$(MKDIR) $(BINPATH)
 	$(CC) $(LDFLAGS)  $(AOBJ)  $(COBJ) -o $(BINPATH)/sys_init.elf
+
+$(BINPATH)/sys_init.bin: $(BINPATH)/sys_init.elf
+	$(MKDIR) $(BINPATH)
 	$(OBJCOPY) -S -O binary $(BINPATH)/sys_init.elf $(BINPATH)/sys_init.bin
 	@if [ `uname -m` = "x86_64" ]; then $(OBJDUMP) -D -S $(BINPATH)/sys_init.elf > $(BINPATH)/sys_init.dis; fi
 
@@ -153,9 +161,6 @@ $(CFG_HEADER): FORCE
 	$(AS) $(ASFLAGS) -o $@ $(subst .o,.S,$@)
 
 -include $(COBJ:.o=.d)
-
-$(BINPATH):
-	@$(MKDIR) $(BINPATH)
 
 clean:
 	$(ECHO) "  SYS INIT CLEAN"
