@@ -168,3 +168,4 @@ clean:
 	@$(RM) -f $(CFG_HEADER) *.o *.elf *.bin *.d *dis ddr/*.o ddr/*.d $(COMMON_PATH)/*.o $(LDSCRIPT)
 
 FORCE:;
+.PHONY: all clean FORCE
