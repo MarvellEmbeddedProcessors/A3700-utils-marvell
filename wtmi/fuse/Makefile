@@ -57,11 +57,18 @@ LOAD_ADDR	:= 0x1fff0000
 
 .SILENT:
 
-all: $(COBJ) $(AOBJ) $(BINPATH)
-	rm -f ./$(LDSCRIPT)
+all: $(BINPATH)/fuse.bin
+
+$(LDSCRIPT): $(COMMON_PATH)/template.ld
 	$(SED) 's|. = LOAD_ADDR|. = $(LOAD_ADDR)|1' $(COMMON_PATH)/template.ld > ./$(LDSCRIPT)
+
+$(BINPATH)/fuse.elf: $(LDSCRIPT) $(AOBJ)  $(COBJ)
 	$(ECHO) "  CC    $(LDFLAGS)  $(AOBJ)  $(COBJ) -o $(BINPATH)/fuse.elf"
+	$(MKDIR) $(BINPATH)
 	$(CC) $(LDFLAGS)  $(AOBJ)  $(COBJ) -o $(BINPATH)/fuse.elf
+
+$(BINPATH)/fuse.bin: $(BINPATH)/fuse.elf
+	$(MKDIR) $(BINPATH)
 	$(OBJCOPY) -S -O binary $(BINPATH)/fuse.elf $(BINPATH)/fuse.bin
 	@if [ `uname -m` = "x86_64" ]; then $(OBJDUMP) -D -S $(BINPATH)/fuse.elf > $(BINPATH)/fuse.dis; fi
 
@@ -74,9 +81,6 @@ all: $(COBJ) $(AOBJ) $(BINPATH)
 	$(AS) $(ASFLAGS) -o $@ $(subst .o,.S,$@)
 
 -include $(COBJ:.o=.d)
-
-$(BINPATH):
-	@$(MKDIR) $(BINPATH)
 
 clean:
 	$(ECHO) "  CLEAN"
