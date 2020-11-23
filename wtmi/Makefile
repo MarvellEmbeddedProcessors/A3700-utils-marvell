@@ -7,7 +7,9 @@ MKDIR    = @mkdir -p
 BINPATH		= build
 WTMI_PATH	= $(shell pwd)
 COMMON_PATH	= $(WTMI_PATH)/common
-WTMI_IMG	?= fuse/build/fuse.bin
+FUSE_IMG	:= fuse/build/fuse.bin
+WTMI_IMG	?= $(FUSE_IMG)
+WTMI_IMG_REL	:= $(shell realpath --canonicalize-missing --relative-to=$(WTMI_PATH) $(WTMI_IMG))
 SYS_INIT_IMG	:= sys_init/build/sys_init.bin
 MULTI_IMG	:= $(BINPATH)/wtmi.bin
 WTMI_PAD_IMG	:= $(BINPATH)/wtmi_app_pad.bin
@@ -39,11 +41,11 @@ $(BINPATH):
 $(SYS_INIT_IMG): $(WTMI_PAD_IMG)
 	${MAKE} -C sys_init LOAD_OFFSET=$(shell wc -c < $(WTMI_PAD_IMG)) COMMON_PATH=$(COMMON_PATH) CROSS_CM3=$(CROSS_CM3)
 
-$(WTMI_PAD_IMG): $(WTMI_IMG)
-	cp -f $(WTMI_IMG) $(WTMI_PAD_IMG)
+$(WTMI_PAD_IMG): $(WTMI_IMG_REL)
+	cp -f $(WTMI_IMG_REL) $(WTMI_PAD_IMG)
 	truncate -s %16 $(WTMI_PAD_IMG)
 
-$(WTMI_IMG):
+$(FUSE_IMG):
 	${MAKE} -C fuse COMMON_PATH=$(COMMON_PATH) CROSS_CM3=$(CROSS_CM3)
 
 clean:
