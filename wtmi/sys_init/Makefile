@@ -132,7 +132,6 @@ define filechk_autoconf.h
 endef
 
 .SILENT:
-.PHONY: $(CFG_HEADER)
 
 all: $(CFG_HEADER) $(COBJ) $(AOBJ) $(BINPATH)
 	rm -f ./$(LDSCRIPT)
@@ -142,7 +141,7 @@ all: $(CFG_HEADER) $(COBJ) $(AOBJ) $(BINPATH)
 	$(OBJCOPY) -S -O binary $(BINPATH)/sys_init.elf $(BINPATH)/sys_init.bin
 	@if [ `uname -m` = "x86_64" ]; then $(OBJDUMP) -D -S $(BINPATH)/sys_init.elf > $(BINPATH)/sys_init.dis; fi
 
-$(CFG_HEADER):
+$(CFG_HEADER): FORCE
 	$(call filechk,autoconf.h)
 
 %.o: %.c $(CFG_HEADER)
@@ -162,3 +161,5 @@ clean:
 	$(ECHO) "  SYS INIT CLEAN"
 	@$(RM) -rf $(BINPATH)
 	@$(RM) -f $(CFG_HEADER) *.o *.elf *.bin *.d *dis ddr/*.o ddr/*.d $(COMMON_PATH)/*.o $(LDSCRIPT)
+
+FORCE:;
