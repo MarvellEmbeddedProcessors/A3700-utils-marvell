@@ -94,15 +94,15 @@ LOAD_ADDR		:= $(shell printf 0x%x $(LOAD_ADDR_DEC))
 CFG_HEADER = autoconf.h
 
 define filechk
-	@set -e;				\
-	echo '  CHK     $@';		\
-	mkdir -p $(dir $@);			\
-	$(filechk_$(1)) > $@.tmp;		\
-	if [ -r $@ ] && cmp -s $@ $@.tmp; then	\
-		rm -f $@.tmp;			\
+	set -e;				\
+	echo '  CHK     $(1)';		\
+	mkdir -p $(dir $(1));			\
+	$(filechk_$(1)) > $(1).tmp;		\
+	if [ -r $(1) ] && cmp -s $(1) $(1).tmp; then	\
+		rm -f $(1).tmp;			\
 	else					\
-		echo '  UPD     $@';	\
-		mv -f $@.tmp $@;		\
+		echo '  UPD     $(1)';	\
+		mv -f $(1).tmp $(1);		\
 	fi
 endef
 
