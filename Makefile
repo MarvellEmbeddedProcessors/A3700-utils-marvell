@@ -17,10 +17,16 @@ endif
 
 all: mv_ddr WTMI
 
-mv_ddr:
-	${Q}${MAKE} PLATFORM=a3700 --no-print-directory -C ${MV_DDR_PATH} DDR_TYPE=$(DDR_TYPE) clean
-	make -C ${MV_DDR_PATH} PLATFORM=a3700 DDR_TYPE=$(DDR_TYPE)
+$(MV_DDR_PATH)/a3700_tool: FORCE
+ifndef MV_DDR_PATH
+	$(error "'MV_DDR_PATH' is not set")
+endif
+	${Q}${MAKE} -C ${MV_DDR_PATH} PLATFORM=a3700 DDR_TYPE=$(DDR_TYPE)
+
+$(TIM_DDR_PATH)/ddr_tool: $(MV_DDR_PATH)/a3700_tool
 	@cp -f ${MV_DDR_PATH}/a3700_tool $(TIM_DDR_PATH)/ddr_tool
+
+mv_ddr: $(TIM_DDR_PATH)/ddr_tool
 
 WTMI:
 	${MAKE} -C wtmi LOCAL_VERSION_STRING=$(LOCAL_VERSION_STRING)
@@ -28,6 +34,9 @@ WTMI:
 clean:
 	${Q}${MAKE} -C wtmi clean
 	@rm -f tim/ddr/ddr_static.txt tim/ddr/clocks_ddr.txt
+ifdef MV_DDR_PATH
 	${Q}${MAKE} PLATFORM=a3700 --no-print-directory -C ${MV_DDR_PATH} DDR_TYPE=$(DDR_TYPE) clean
+endif
 
-.PHONY: all mv_ddr WTMI clean
+FORCE:;
+.PHONY: all mv_ddr WTMI clean FORCE
