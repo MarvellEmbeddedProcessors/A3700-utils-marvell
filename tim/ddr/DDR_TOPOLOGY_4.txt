@@ -22,4 +22,4 @@ ddr_bus_width_index=2
 ddr_mem_size_index=4
 
 #twin-die combined
-ddr_twin_die_index=1
+ddr_twin_die_index=0
