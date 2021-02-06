@@ -51,7 +51,7 @@ ECHO     = @echo
 SED      = @sed
 
 LOCAL_VERSION_STRING	?= -armada
-BUILD_STRING		:= $(shell git log -n 1 --pretty=format:"%h")
+BUILD_STRING		:= $(shell git log -n 1 --pretty=format:"%h" && (git diff-index --quiet HEAD || echo -dirty))
 VERSION_STRING		:= $(LOCAL_VERSION_STRING)-$(BUILD_STRING)
 
 CPUOPTS  = -mthumb -mcpu=cortex-m3 -mlittle-endian
@@ -59,7 +59,7 @@ BINPATH  = build
 LDSCRIPT = sys_init.ld
 INCLUDE  = -I. -I$(COMMON_PATH)
 
-CFLAGS   = -g -gdwarf-2 -Wall -fno-stack-protector $(INCLUDE) -Os $(CPUOPTS) -DVERSION=\"$(VERSION_STRING)\"
+CFLAGS   = -g -gdwarf-2 -Wall -fno-stack-protector $(INCLUDE) -Os $(CPUOPTS)
 CPPFLAGS =
 ASFLAGS  = -g --gdwarf-2 --warn $(INCLUDE) $(CPUOPTS)
 LDFLAGS  = -nostdlib -T $(LDSCRIPT) -Xlinker "--build-id=none"
@@ -124,6 +124,7 @@ CONFIG_DEV_CAP   := $(shell $(GET_DDR_PARAMS) $(DDR_TOPOLOGY_FILE) ddr_mem_size_
 
 define filechk_autoconf.h
 	(echo \#define DEBUG $(DEBUG);\
+	echo \#define VERSION \"$(VERSION_STRING)\";\
 	echo \#define LOAD_ADDR $(LOAD_ADDR);\
 	echo \#define WTMI_CLOCK $(WTMI_CLOCK);\
 	echo \#define CONFIG_DDR_TYPE $(CONFIG_DDR_TYPE);\
