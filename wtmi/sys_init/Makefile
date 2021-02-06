@@ -111,6 +111,7 @@ endef
 # files and scripts
 DDR_TOPOLOGY_PATH=../../tim/ddr
 DDR_TOPOLOGY_FILE=$(DDR_TOPOLOGY_PATH)/DDR_TOPOLOGY_$(DDR_TOPOLOGY).txt
+$(if $(wildcard $(DDR_TOPOLOGY_FILE)),,$(error "DDR_TOPOLOGY=$(DDR_TOPOLOGY) is invalid"))
 
 SCRIPT_PATH=../../script
 GET_DDR_PARAMS=$(SCRIPT_PATH)/getddrparams.sh

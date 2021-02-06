@@ -6,6 +6,7 @@ SCRIPT_PATH		:= $(ROOT_PATH)/script
 
 DDR_TOPOLOGY		?= 0
 DDR_TOPOLOGY_FILE 	:= $(TIM_DDR_PATH)/DDR_TOPOLOGY_$(DDR_TOPOLOGY).txt
+$(if $(wildcard $(DDR_TOPOLOGY_FILE)),,$(error "DDR_TOPOLOGY=$(DDR_TOPOLOGY) is invalid"))
 GET_DDR_PARAMS=$(SCRIPT_PATH)/getddrparams.sh
 CONFIG_DDR_TYPE=$(shell ($(GET_DDR_PARAMS) $(DDR_TOPOLOGY_FILE) ddr_type))
 
