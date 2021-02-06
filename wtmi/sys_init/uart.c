@@ -54,6 +54,12 @@ static void uart_set_baudrate(unsigned int baudrate)
 
 int uart_init(unsigned int baudrate)
 {
+	int max_wait = 3000; /* 3ms */
+
+	/* Wait 3ms for the TX (THR and TSR) to be empty */
+	while (--max_wait > 0 && !(readl(MVEBU_UART0_STATUS_REG) & BIT6))
+		wait_ns(1000);
+
 	uart_set_baudrate(baudrate);
 
 	/* reset FIFOs */
