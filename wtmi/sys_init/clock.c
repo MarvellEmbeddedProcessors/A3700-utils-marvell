@@ -655,6 +655,8 @@ int setup_clock_tree(void)
 	if (preset_flag == 0)
 		return -1;
 
+	printf("Setting clocks: CPU %d MHz, DDR %d MHz\n", clk_cfg->cpu_freq_mhz, clk_cfg->ddr_freq_mhz);
+
 	/* Switch all North/South Bridge clock sources to XTAL
 	   prior to make any change to the clock configuration */
 	writel(0x00000000, MVEBU_NORTH_CLOCK_SELECT_REG);
