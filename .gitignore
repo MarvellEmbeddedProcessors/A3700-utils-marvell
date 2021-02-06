@@ -6,7 +6,10 @@ wtmi/build/*
 *.dis
 *.bin
 #ignore specific files
+clocks_ddr.txt
 ddr_static.txt
+ddr_static.txt.info
 autoconf.h
 tim/ddr/ddr_tool
+tim/ddr/ddr_tool.verstr
 

@@ -27,14 +27,17 @@ endif
 $(TIM_DDR_PATH)/ddr_tool: $(MV_DDR_PATH)/a3700_tool
 	@cp -f ${MV_DDR_PATH}/a3700_tool $(TIM_DDR_PATH)/ddr_tool
 
-mv_ddr: $(TIM_DDR_PATH)/ddr_tool
+$(TIM_DDR_PATH)/ddr_tool.verstr: $(MV_DDR_PATH)/a3700_tool
+	@echo mv_ddr-$(shell sed 's/^mv_ddr-//' $(MV_DDR_PATH)/localversion 2>/dev/null || echo 'unknown')$(if $(shell git -C $(MV_DDR_PATH) rev-parse --git-dir 2>/dev/null),-g$(shell git -C $(MV_DDR_PATH) rev-parse --verify --quiet --short HEAD 2>/dev/null)$(shell git -C $(MV_DDR_PATH) diff-index --quiet HEAD || echo -d)) > $@
+
+mv_ddr: $(TIM_DDR_PATH)/ddr_tool $(TIM_DDR_PATH)/ddr_tool.verstr
 
 WTMI:
 	${MAKE} -C wtmi LOCAL_VERSION_STRING=$(LOCAL_VERSION_STRING)
 
 clean:
 	${Q}${MAKE} -C wtmi clean
-	@rm -f tim/ddr/ddr_static.txt tim/ddr/clocks_ddr.txt
+	@rm -f tim/ddr/ddr_static.txt tim/ddr/clocks_ddr.txt tim/ddr/ddr_tool tim/ddr/ddr_tool.verstr tim/ddr/ddr_static.txt.info
 ifdef MV_DDR_PATH
 	${Q}${MAKE} PLATFORM=a3700 --no-print-directory -C ${MV_DDR_PATH} DDR_TYPE=$(DDR_TYPE) clean
 endif

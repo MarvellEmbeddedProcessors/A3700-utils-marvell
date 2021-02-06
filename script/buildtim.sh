@@ -155,6 +155,26 @@ static_ddr(){
 				# Read TIM version from "version.txt" file
 				$TIMGETVER $VERFILE $DDROUTFILE
 			fi
+
+			# Print out mv_ddr version and ddr configuration string
+			if [ "$BOOT_DEV" != "UART" ]; then
+				STR="$DDRVERSTR $DDRCHIPSTR"$'\r'$'\n'
+				LEN=${#STR}
+				echo "; $DDRVERSTR $DDRCHIPSTR" >> $DDROUTFILE
+				for (( i=0; i<$LEN; ))
+				do
+					# TXFIFO has space for 32 characters and it will take 3ms to transmit them on 115200 baudrate
+					echo "WAIT_FOR_BIT_SET: 0xC001200C 0x2000 3 ; Wait 3ms for TXFIFO empty" >> $DDROUTFILE
+					for (( j=0; j<32 && i<$LEN; j++, i++ ))
+					do
+						CHARACTER=${STR:$i:1}
+						ASCIIVAL=$(printf "0x%02X" \'"$CHARACTER")
+						echo "WRITE: 0xC0012004" $ASCIIVAL "               ; Print character" >> $DDROUTFILE
+					done
+				done
+				echo "WAIT_FOR_BIT_SET: 0xC001200C 0x40 3   ; Wait 3ms for TX empty" >> $DDROUTFILE
+			fi
+
 			echo "End Instructions:" >> $DDROUTFILE
 			echo "End GPP:" >> $DDROUTFILE
 		fi
@@ -244,7 +264,7 @@ CLOCKSFILE=$CLOCKSPATH/clocks_ddr.txt
 # All DDR use the configuration for 800M
 DDRTYPE=`$GETDDRPARAMS $DDRTOPFILE ddr_type`
 
-$CLOCKSPATH/ddr_tool -i $DDRTOPFILE -o $DDRFILE
+$CLOCKSPATH/ddr_tool -i $DDRTOPFILE -o $DDRFILE > $DDRFILE.info
 
 if [ $? -ne 0 ]; then
 	echo "DDR_tool fails to run!"
@@ -258,6 +278,13 @@ elif [ ! -s $DDRFILE ]; then
 	echo "$DDRFILE file is empty!"
 	exit 1
 fi
+
+# Parse DDR type, size, CS num and short version string
+DDRCSNUM=`sed -nE 's/^\s*CS num:\s*([1-9])CS.*$/\1/p' < $DDRFILE.info`
+DDRCHIPSTR=`sed -nE 's/^\s*Chip:\s*//p' < $DDRFILE.info`
+DDRSIZEGB=$(LC_NUMERIC=C printf '%g' $(echo $((`echo "$DDRCHIPSTR" | grep -oE '[0-9][0-9]*MBytes' | grep -oE '[0-9]*'`*$DDRCSNUM*10/1024)) | sed 's/.$/.&/'))
+DDRCHIPSTR=`sed -E "s/bit/b/;s/[0-9][0-9]*MBytes/${DDRSIZEGB}GB ${DDRCSNUM}CS/" <<< $DDRCHIPSTR`
+DDRVERSTR=`cat $CLOCKSPATH/ddr_tool.verstr`
 
 if [ $DDRTYPE = "0" ]; then
 		cp -f $CLOCKSPATH/clocks-ddr3.txt $CLOCKSPATH/clocks_ddr.txt
