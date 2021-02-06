@@ -244,18 +244,18 @@ CLOCKSFILE=$CLOCKSPATH/clocks_ddr.txt
 # All DDR use the configuration for 800M
 DDRTYPE=`$GETDDRPARAMS $DDRTOPFILE ddr_type`
 
-$CLOCKSPATH/ddr_tool -i $DDRTOPFILE -o $CLOCKSPATH/ddr_static.txt
+$CLOCKSPATH/ddr_tool -i $DDRTOPFILE -o $DDRFILE
 
 if [ $? -ne 0 ]; then
 	echo "DDR_tool fails to run!"
 	exit 1
 fi
 
-if [ ! -e $CLOCKSPATH/ddr_static.txt ]; then
-	echo "Cannot find ddr_static.txt file!"
+if [ ! -e $DDRFILE ]; then
+	echo "Cannot find $DDRFILE file!"
 	exit 1
-elif [ ! -s $CLOCKSPATH/ddr_static.txt ]; then
-	echo "ddr_static.txt file is empty!"
+elif [ ! -s $DDRFILE ]; then
+	echo "$DDRFILE file is empty!"
 	exit 1
 fi
 
