@@ -77,5 +77,10 @@ void uart_putc(void *p, char c)
 
 	writel(c, MVEBU_UART0_TX_REG);
 
+	if (c == '\n') {
+		while (!(readl(MVEBU_UART0_STATUS_REG) & BIT6))
+			;
+	}
+
 	return;
 }
