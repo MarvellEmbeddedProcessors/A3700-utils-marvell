@@ -30,30 +30,24 @@ if [ "$OUTFILE" = "" ]; then
 	usage
 fi
 
-# Get version string and its length
+# Set TIM string to TIM version with newlines
 VERSTR=$(cat $VERFILE)
-VERLEN=${#VERSTR}
+STR=$'\r'$'\n'$'\r'$'\n'"TIM-$VERSTR"$'\r'$'\n'
+LEN=${#STR}
 
-echo "WAIT_FOR_BIT_SET: 0xC001200C 0x20 1 ; Wait for TX ready" >> $OUTFILE
-echo "WRITE: 0xC0012004 0x54              ; Print 'T'" >> $OUTFILE
-echo "WAIT_FOR_BIT_SET: 0xC001200C 0x20 1 ; Wait for TX ready" >> $OUTFILE
-echo "WRITE: 0xC0012004 0x49              ; Print 'I'" >> $OUTFILE
-echo "WAIT_FOR_BIT_SET: 0xC001200C 0x20 1 ; Wait for TX ready" >> $OUTFILE
-echo "WRITE: 0xC0012004 0x4D              ; Print 'M'" >> $OUTFILE
-echo "WAIT_FOR_BIT_SET: 0xC001200C 0x20 1 ; Wait for TX ready" >> $OUTFILE
-echo "WRITE: 0xC0012004 0x2D              ; Print '-'" >> $OUTFILE
-
-# Print out TIM version number
-for (( i=0; i<$VERLEN; i++ ))
+# Print out TIM string
+echo "; TIM-$VERSTR" >> $OUTFILE
+for (( i=0; i<$LEN; ))
 do
-	CHARACTER=${VERSTR:$i:1}
-	ASCIIVAL=$(printf "%d" \'$CHARACTER)
-	echo "WAIT_FOR_BIT_SET: 0xC001200C 0x20 1 ; Wait for TX ready" >> $OUTFILE
-	echo "WRITE: 0xC0012004" $ASCIIVAL  "; Print tim version number">> $OUTFILE
+	# TXFIFO has space for 32 characters and it will take 3ms to transmit them on 115200 baudrate
+	echo "WAIT_FOR_BIT_SET: 0xC001200C 0x2000 3 ; Wait 3ms for TXFIFO empty" >> $OUTFILE
+	for (( j=0; j<32 && i<$LEN; j++, i++ ))
+	do
+		CHARACTER=${STR:$i:1}
+		ASCIIVAL=$(printf "0x%02X" \'"$CHARACTER")
+		echo "WRITE: 0xC0012004" $ASCIIVAL "               ; Print character" >> $OUTFILE
+	done
 done
-echo "WAIT_FOR_BIT_SET: 0xC001200C 0x20 1 ; Wait for TX ready" >> $OUTFILE
-echo "WRITE: 0xC0012004 0x0D                      ; Print CR" >> $OUTFILE
-echo "WAIT_FOR_BIT_SET: 0xC001200C 0x20 1 ; Wait for TX ready" >> $OUTFILE
-echo "WRITE: 0xC0012004 0x0A                      ; Print LF" >> $OUTFILE
+echo "WAIT_FOR_BIT_SET: 0xC001200C 0x40 3   ; Wait 3ms for TX empty" >> $OUTFILE
 
 exit 0
