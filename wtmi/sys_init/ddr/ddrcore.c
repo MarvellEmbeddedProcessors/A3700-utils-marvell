@@ -192,6 +192,7 @@ int init_ddr(struct ddr_init_para init_para,
 		self_refresh_entry(cs, tc_ddr_type);
 
 	/* 2. setup clock */
+	LogMsg(LOG_LEVEL_ERROR, FLAG_REGS_DUMP_SELFTEST, "\n\n");
 	init_para.clock_init();
 
 	/* 3. DDRPHY sync2 and DLL reset */
@@ -409,6 +410,8 @@ int init_ddr(struct ddr_init_para init_para,
 #ifdef VALIDATION_EYE
 	rx_sweep_test();
 #endif
+
+	LogMsg(LOG_LEVEL_ERROR, FLAG_REGS_DUMP_SELFTEST, "\n\n");
 	return ret_val;
 }
 #ifdef VALIDATION_EYE

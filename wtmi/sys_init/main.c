@@ -168,6 +168,7 @@ int sys_init_main(void)
 		ddr_debug("  cs[1] - bank num     %d\n", map.cs[1].bank_num);
 		ddr_debug("  cs[1] - capacity     %dMiB\n", map.cs[1].capacity);
 	}
+	ddr_debug("\n");
 
 	/* WTMI_CLOCK was set in the compile parametr */
 	set_clock_preset(WTMI_CLOCK);
