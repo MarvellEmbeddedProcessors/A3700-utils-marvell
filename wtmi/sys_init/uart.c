@@ -39,15 +39,17 @@
 #include "uart.h"
 #include "delay.h"
 
-#define UART_CLOCK_FREQ		25804800
+#define DIV_ROUND_CLOSEST(x, divisor) (((x) + (divisor)/2) / (divisor))
 
 static void uart_set_baudrate(unsigned int baudrate)
 {
+	unsigned int clock = get_ref_clk() * 1000000;
+
 	/*
 	 * calculate divider.
 	 * baudrate = clock / 16 / divider
 	 */
-	writel((UART_CLOCK_FREQ / baudrate / 16), MVEBU_UART0_BAUD_REG);
+	writel(DIV_ROUND_CLOSEST(clock, baudrate * 16), MVEBU_UART0_BAUD_REG);
 	/* set Programmable Oversampling Stack to 0, UART defaults to 16X scheme */
 	writel(0, MVEBU_UART0_POSSR_REG);
 }
