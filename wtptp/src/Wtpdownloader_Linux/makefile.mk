@@ -11,7 +11,7 @@ IPP_STATIC_LIB_DIR = $(IPP_PATH)/lib
 OBJECTS = WtpStatus.o WtpCommand.o Misc.o WtpException.o WtpImage.o Port.o ProtocolManager.o USBPortLinux.o UARTPortLinux.o TimParser.o CommandlineParser.o TimLib.o WtpDownloadApp.o \
 
 
-CXXFLAGS = -Wno-deprecated -D LINUX=1 -D TOOLS_GUI=0 -D IPPV6=1 -D TRUSTED=1 -D DEV_DEBUG=0 -I $(COMMON_SRC)
+CXXFLAGS = -std=c++11 -Wno-deprecated -D LINUX=1 -D TOOLS_GUI=0 -D IPPV6=1 -D TRUSTED=1 -D DEV_DEBUG=0 -I $(COMMON_SRC)
 
 WTP_CXXFLAGS = $(CXXFLAGS) -I $(WTP_INCLUDE)
 
