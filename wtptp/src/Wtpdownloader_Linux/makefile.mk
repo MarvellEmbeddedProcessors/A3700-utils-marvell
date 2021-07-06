@@ -17,9 +17,11 @@ WTP_CXXFLAGS = $(CXXFLAGS) -I $(WTP_INCLUDE)
 
 #LIBS = $(IPP_STATIC_LIB_DIR)/libippcpmerged.a $(IPP_STATIC_LIB_DIR)/libippcore.a
 
-WtpDownload: $(OBJECTS)
+WtpDownload_linux: $(OBJECTS)
 		$(CXX) $(WTP_CXXFLAGS) -o WtpDownload_linux $(OBJECTS) $(LIBS)
-		-rm *.o
+
+clean:
+		-rm -f WtpDownload_linux $(OBJECTS)
 
 WtpDownloadApp.o: $(WTP_SRC)/WtpDownloadApp.cpp $(WTP_INCLUDE)/WtpDownloadApp.h
 		$(CXX) $(WTP_CXXFLAGS) -o WtpDownloadApp.o -c $(WTP_SRC)/WtpDownloadApp.cpp
