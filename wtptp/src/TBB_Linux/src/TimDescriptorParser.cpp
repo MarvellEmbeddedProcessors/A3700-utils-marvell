@@ -2682,7 +2682,7 @@ bool CTimDescriptorParser::ParseExtendedReservedData(
 	}
 	if (m_TimDescriptor.ImagesList().size() > 0) {
 		CImageDescription* pImage = (*(m_TimDescriptor.ImagesList().begin()));
-		if (pImage > 0
+		if (pImage != 0
 				&& ((Translate(pImage->ImageIdTag()) & TYPEMASK)
 						== (TIMIDENTIFIER & TYPEMASK))) {
 			if (pImage->ImageSizeToHash() == pImage->ImageSize())
