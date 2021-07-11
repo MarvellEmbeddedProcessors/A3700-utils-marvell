@@ -121,7 +121,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include INCLUDE_FILE(files.h)
 #include INCLUDE_FILE(secblock.h)
 
+#ifdef CRYPTOPP_NO_GLOBAL_BYTE
 using CryptoPP::byte;
+#endif
 
 namespace CryptoPP {
 
@@ -167,7 +169,11 @@ class TF_SignerImpl_Hash : public TF_ObjectImpl<TF_SignerBase_Hash, SCHEME_OPTIO
 
 // Struct RSASS_Hash inherits this class..
 // This class contains the modified signer instance
+#if defined(CRYPTOPP_VERSION) && CRYPTOPP_VERSION >= 600
 template <class STANDARD, class H, class KEYS, class ALG_INFO = TF_SS<KEYS, STANDARD, H, int> >
+#else
+template <class STANDARD, class H, class KEYS, class ALG_INFO = TF_SS<STANDARD, H, KEYS, int> >
+#endif
 class TF_SS_Hash : public KEYS
 {
 public:
