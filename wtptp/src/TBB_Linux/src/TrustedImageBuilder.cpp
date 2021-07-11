@@ -2536,10 +2536,10 @@ bool CTrustedImageBuilder::signMessageUsingCryptoPPRSA(unsigned char * msg,
 		CDigS.DigSFromArray((UINT *) sign, CDigS.KeySize() / 32);
 	}
 
-	delete RSA_D;	//Private Exponent
-	delete RSA_E;	//Public Exponent
-	delete RSA_N;	//Public Modulus
-	delete sign;
+	delete[] RSA_D;	//Private Exponent
+	delete[] RSA_E;	//Public Exponent
+	delete[] RSA_N;	//Public Modulus
+	delete[] sign;
 
 	return retVal;
 }
@@ -2635,11 +2635,11 @@ bool CTrustedImageBuilder::verifyMessageUsingCryptoPPRSA(unsigned char * msg,
 	} else
 		retVal = false;
 
-	delete RSA_D;	//Private Exponent
-	delete RSA_E;	//Public Exponent
-	delete RSA_N;	//Public Modulus
-	delete sign;
-	delete signReversed;
+	delete[] RSA_D;	//Private Exponent
+	delete[] RSA_E;	//Public Exponent
+	delete[] RSA_N;	//Public Modulus
+	delete[] sign;
+	delete[] signReversed;
 
 	return retVal;
 }
@@ -2759,8 +2759,8 @@ bool CTrustedImageBuilder::signMessageUsingCryptoPPECDSA(unsigned char * msg,
 		CDigS.DigSFromArray((UINT *) signReversed, keySize);
 	}
 
-	delete ECDSA_Public;	//Private Exponent
-	delete ECDSA_Private;	//Public Exponent
+	delete[] ECDSA_Public;	//Private Exponent
+	delete[] ECDSA_Private;	//Public Exponent
 
 	return retVal;
 }
@@ -2884,7 +2884,7 @@ bool CTrustedImageBuilder::verifyMessageUsingCryptoPPECDSA(unsigned char * msg,
 	else
 		cerr << "Failed to verify signature on message" << endl;
 
-	delete ECDSA_Public;
+	delete[] ECDSA_Public;
 	return retVal;
 
 }
