@@ -100,6 +100,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <time.h>
 
 CCTIM::CCTIM() {
+	memset((void *) &this->m_TimHeader, 0, sizeof(this->m_TimHeader));
 }
 
 CCTIM::~CCTIM() {
