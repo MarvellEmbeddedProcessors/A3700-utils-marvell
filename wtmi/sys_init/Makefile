@@ -85,6 +85,8 @@ else ifeq ($(CLOCKSPRESET), CPU_1000_DDR_800)
 		WTMI_CLOCK = 2
 else ifeq ($(CLOCKSPRESET), CPU_1200_DDR_750)
 		WTMI_CLOCK = 3
+else
+$(error "CLOCKSPRESET=$(CLOCKSPRESET) is invalid")
 endif
 
 START_ADDR_DEC		:= $(shell printf %d 0x1fff0000)
