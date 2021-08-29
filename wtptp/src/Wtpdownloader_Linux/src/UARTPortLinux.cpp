@@ -127,13 +127,12 @@ void CUARTPortLinux::OpenPort() throw (CWtpException)
 	UARTDeviceName ="/dev/ttyUSB" ;
 	UARTDeviceName.append(portNumber.str());
 	cout << endl << UARTDeviceName << endl;
-	uartLinuxFileDesc = open(UARTDeviceName.c_str(),O_RDWR|O_NOCTTY);
+	uartLinuxFileDesc = open(UARTDeviceName.c_str(),O_RDWR|O_NOCTTY|O_NONBLOCK);
 	if(uartLinuxFileDesc < 0)
 	{
 		cout << endl << " ERROR: Open UART driver failed:" << endl;
 		throw CWtpException(CWtpException::OPENUARTPORT,0,UARTDeviceName);
 	}
-	fcntl(uartLinuxFileDesc,F_SETFL,0);
 	memset(&options, 0, sizeof(options));
 	cfsetispeed(&options, B115200);
 	cfsetospeed(&options, B115200);
@@ -143,8 +142,9 @@ void CUARTPortLinux::OpenPort() throw (CWtpException)
 	options.c_cc[VMIN]   = 0;
 	options.c_cc[VTIME]  = 0;
 	options.c_cflag &= ~(CSIZE|PARENB);
-	options.c_cflag |= CS8;
+	options.c_cflag |= CS8|CLOCAL;
 	tcsetattr(uartLinuxFileDesc, TCSANOW, &options);
+	fcntl(uartLinuxFileDesc,F_SETFL,fcntl(uartLinuxFileDesc, F_GETFL) & ~O_NONBLOCK);
 }
 
 
