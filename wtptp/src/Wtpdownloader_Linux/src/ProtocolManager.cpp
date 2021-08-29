@@ -517,7 +517,7 @@ void CProtocolManager::SendContinuousForceConsoleMode()
 
 			incount = Port->ReadRaw(recbuffer_3e, 1);
 
-			if (recbuffer_3e[0] == 0x3e) {
+			if (recbuffer_3e[0] == 0x3e && incount == 1) {
 				//cout << "I see a 3e" << endl;
 
 				LoopTimeout = 1000000; // force exit from while loop because we have seen a response
