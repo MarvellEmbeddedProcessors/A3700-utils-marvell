@@ -231,7 +231,7 @@ void CProtocolManager::SendContinuousForceUARTMode()
 
 		//cout << recbuffer_3e_or_nack[0] << recbuffer_3e_or_nack[1] << recbuffer_3e_or_nack[2] << recbuffer_3e_or_nack[3] << endl;
 
-			if(recbuffer_3e_or_nack[0] == 0x3e && incount == 1) {
+			if(incount == 1 && recbuffer_3e_or_nack[0] == 0x3e) {
 
 				//cout << "I see a 3e" << endl;
 				LoopTimeout = 10000; // force exit from while loop because we have seen a response
@@ -241,13 +241,13 @@ void CProtocolManager::SendContinuousForceUARTMode()
 
 
 
-			} else if (recbuffer_3e_or_nack[0] == 0x00 && incount == 1 ) {
+			} else if (incount == 1 && recbuffer_3e_or_nack[0] == 0x00) {
 				nullcount++;
 				for (i = 0; i< 3; i++) {
 					//cout << "I see " << nullcount << " characters of a NACK..." << endl;
 					incount = Port->ReadRaw(recbuffer_3e_or_nack, 1);
 
-					if (recbuffer_3e_or_nack[0] == 0x00 && incount == 1) {
+					if (incount == 1 && recbuffer_3e_or_nack[0] == 0x00) {
 						//cout << recbuffer_3e_or_nack[0] << endl;
 						nullcount++;
 						if (nullcount == 4) {
@@ -329,7 +329,7 @@ void CProtocolManager::SendContinuousFFStream_DLoad()
 
 		//cout << recbuffer_3e_or_nack[0] << recbuffer_3e_or_nack[1] << recbuffer_3e_or_nack[2] << recbuffer_3e_or_nack[3] << endl;
 
-		if (recbuffer_3e_or_nack[0] == 0x3e && incount == 1) {
+		if (incount == 1 && recbuffer_3e_or_nack[0] == 0x3e) {
 
 			//cout << "I see a 3e" << endl;
 			LoopTimeout = 1000000; // force exit from while loop because we have seen a response
@@ -340,13 +340,13 @@ void CProtocolManager::SendContinuousFFStream_DLoad()
 
 
 		}
-		else if (recbuffer_3e_or_nack[0] == 0x00 && incount == 1) {
+		else if (incount == 1 && recbuffer_3e_or_nack[0] == 0x00) {
 			nullcount++;
 			for (i = 0; i< 3; i++) {
 				//cout << "I see " << nullcount << " characters of a NACK..." << endl;
 				incount = Port->ReadRaw(recbuffer_3e_or_nack, 1);
 
-				if (recbuffer_3e_or_nack[0] == 0x00 && incount == 1) {
+				if (incount == 1 && recbuffer_3e_or_nack[0] == 0x00) {
 					//cout << recbuffer_3e_or_nack[0] << endl;
 					nullcount++;
 					if (nullcount == 4) {
@@ -424,7 +424,7 @@ void CProtocolManager::SendContinuousFFStream()
 
 		//cout << recbuffer_3e_or_nack[0] << recbuffer_3e_or_nack[1] << recbuffer_3e_or_nack[2] << recbuffer_3e_or_nack[3] << endl;
 
-		if (recbuffer_3e_or_nack[0] == 0x3e && incount == 1) {
+		if (incount == 1 && recbuffer_3e_or_nack[0] == 0x3e) {
 
 			//cout << "I see a 3e" << endl;
 			LoopTimeout = 1000000; // force exit from while loop because we have seen a response
@@ -435,13 +435,13 @@ void CProtocolManager::SendContinuousFFStream()
 
 
 		}
-		else if (recbuffer_3e_or_nack[0] == 0x00 && incount == 1) {
+		else if (incount == 1 && recbuffer_3e_or_nack[0] == 0x00) {
 			nullcount++;
 			for (i = 0; i< 3; i++) {
 				//cout << "I see " << nullcount << " characters of a NACK..." << endl;
 				incount = Port->ReadRaw(recbuffer_3e_or_nack, 1);
 
-				if (recbuffer_3e_or_nack[0] == 0x00 && incount == 1) {
+				if (incount == 1 && recbuffer_3e_or_nack[0] == 0x00) {
 					//cout << recbuffer_3e_or_nack[0] << endl;
 					nullcount++;
 					if (nullcount == 4) {
@@ -517,7 +517,7 @@ void CProtocolManager::SendContinuousForceConsoleMode()
 
 			incount = Port->ReadRaw(recbuffer_3e, 1);
 
-			if (recbuffer_3e[0] == 0x3e && incount == 1) {
+			if (incount == 1 && recbuffer_3e[0] == 0x3e) {
 				//cout << "I see a 3e" << endl;
 
 				LoopTimeout = 1000000; // force exit from while loop because we have seen a response
@@ -526,13 +526,13 @@ void CProtocolManager::SendContinuousForceConsoleMode()
 
 				//cout << "Sending a response" << endl;
 				//Port->WriteRaw(sendbuffer_response, 1);
-			} else if (recbuffer_3e[0] == 0x00 && incount == 1) {
+			} else if (incount == 1 && recbuffer_3e[0] == 0x00) {
 				nullcount++;
 				for (i = 0; i< 3; i++) {
 					//cout << "I see " << nullcount << " characters of a NACK..." << endl;
 					incount = Port->ReadRaw(recbuffer_3e, 1);
 
-					if (recbuffer_3e[0] == 0x00 && incount == 1) {
+					if (incount == 1 && recbuffer_3e[0] == 0x00) {
 						//cout << recbuffer_3e[0] << endl;
 						nullcount++;
 						if (nullcount == 4) {
