@@ -503,11 +503,11 @@ int main(int argc,char* argv[])
 	stringstream Message;
 	CMisc misc;
 	//CUARTPort UartPort;
-	char * dummybuffer = new char[8];
-	char * dummybuffer1 = new char[1]; // a single byte buffer
-	char * response = new char[1];
+	char dummybuffer[8];
+	char dummybuffer1[1]; // a single byte buffer
+	char response[1];
 	response[0] = 0x0d;
-	char * response4 = new char[4];
+	char response4[4];
 	response4[0] = 0x0d;
 	response4[1] = 0x0d;
 	response4[2] = 0x0d;
