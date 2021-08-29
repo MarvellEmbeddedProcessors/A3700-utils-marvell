@@ -534,11 +534,7 @@ int main(int argc,char* argv[])
     printf( "Start time: %s\n", tmpbuf );
 
 	//Message << "Download Start Time: " << ctime(&theApp.downloadStartTime) << endl;
-#if	X64_BUILD
-	Message << "WtpDownload for 64-bit Host (Target Images Downloading Tool)" << endl;
-#else
-	Message << "WtpDownload for 32-bit Host (Target Images Downloading Tool)" << endl;
-#endif
+	Message << "WtpDownload for " << 8*sizeof(void*) << "-bit Host (Target Images Downloading Tool)" << endl;
 
 #if TRUSTED
 	Message << endl << "Trusted version for TIM and NTIM" << endl;
