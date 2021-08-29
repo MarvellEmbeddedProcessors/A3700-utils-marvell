@@ -893,7 +893,7 @@ Exit:
     printf( "\nFinish time: %s\n", tmpbuf );
 	double timetaken = difftime(endtime,starttime);
 
-	Message <<"Download Time:" << theApp.ConvertSecondsToTimeString(timetaken) ;
+	Message <<"Download Time:" << theApp.ConvertSecondsToTimeString(timetaken) << endl;
 	misc.UserMessagePrintStr(true,Message.str());
 	if(bIsOk)
 		return 0;
