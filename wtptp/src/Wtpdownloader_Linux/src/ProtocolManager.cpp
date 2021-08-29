@@ -197,10 +197,10 @@ void CProtocolManager::SendContinuousForceUARTMode()
 
 	stringstream Message;
 	unsigned int LoopTimeout = 0;
-	char * sendbuffer_escape = new char[8];
-	char * sendbuffer_response = new char[1];
-	char * recbuffer_escape = new char[8];
-	char * recbuffer_3e_or_nack = new char[1];
+	char sendbuffer_escape[8];
+	char sendbuffer_response[1];
+	char recbuffer_escape[8];
+	char recbuffer_3e_or_nack[1];
 	int i = 0;
 	int nullcount = 0;
 	int incount = 0;
@@ -295,10 +295,10 @@ void CProtocolManager::SendContinuousFFStream_DLoad()
 
 	stringstream Message;
 	unsigned int LoopTimeout = 0;
-	char * sendbuffer_escape = new char[8];
-	char * sendbuffer_response = new char[1];
-	char * recbuffer_escape = new char[8];
-	char * recbuffer_3e_or_nack = new char[1];
+	char sendbuffer_escape[8];
+	char sendbuffer_response[1];
+	char recbuffer_escape[8];
+	char recbuffer_3e_or_nack[1];
 	int i = 0;
 	int nullcount = 0;
 	int incount = 0;
@@ -395,10 +395,10 @@ void CProtocolManager::SendContinuousFFStream()
 
 	stringstream Message;
 	unsigned int LoopTimeout = 0;
-	char * sendbuffer_escape = new char[8];
-	char * sendbuffer_response = new char[1];
-	char * recbuffer_escape = new char[8];
-	char * recbuffer_3e_or_nack = new char[1];
+	char sendbuffer_escape[8];
+	char sendbuffer_response[1];
+	char recbuffer_escape[8];
+	char recbuffer_3e_or_nack[1];
 	int i = 0;
 	int nullcount = 0;
 	int incount = 0;
@@ -492,10 +492,10 @@ void CProtocolManager::SendContinuousForceConsoleMode()
 	unsigned int waitLoop = 0;
 	int nullcount = 0;
 	int i = 0;
-	char * sendbuffer_escape = new char[8];
-	char * sendbuffer_response = new char[1];
-	char * recbuffer_escape = new char[8];
-	char * recbuffer_3e = new char[1];
+	char sendbuffer_escape[8];
+	char sendbuffer_response[1];
+	char recbuffer_escape[8];
+	char recbuffer_3e[1];
 	sendbuffer_response[0] = 0xd;
 	int incount = 0;
 	Message << "HOST:: Sending 0xDD112233 and 0x44556677 ..." << endl;
