@@ -134,6 +134,7 @@ void CUARTPortLinux::OpenPort() throw (CWtpException)
 		throw CWtpException(CWtpException::OPENUARTPORT,0,UARTDeviceName);
 	}
 	memset(&options, 0, sizeof(options));
+	tcgetattr(uartLinuxFileDesc, &options);
 	cfsetispeed(&options, B115200);
 	cfsetospeed(&options, B115200);
 	options.c_iflag     &= ~(IGNBRK|BRKINT|PARMRK|ISTRIP|INLCR|IGNCR|ICRNL|IXON);
