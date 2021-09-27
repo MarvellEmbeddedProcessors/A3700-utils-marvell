@@ -715,8 +715,8 @@ void CProtocolManager::SelectImage (unsigned int *pImageType) throw (CWtpExcepti
 		throw CWtpException(CWtpException::NACK_SELECTIMAGE);
 	}
 
-	HandlePendingMessages();
 	delete Port->WtpCmd;
+	HandlePendingMessages();
 }
 
 /**
@@ -756,8 +756,8 @@ void CProtocolManager::VerifyImage (unsigned char AckOrNack) throw (CWtpExceptio
 		throw CWtpException(CWtpException::NACK_VERIFYIMAGE);
 	}
 
-	HandlePendingMessages();
 	delete Port->WtpCmd;
+	HandlePendingMessages();
 }
 
 /**
@@ -802,8 +802,8 @@ void CProtocolManager::DataHeader(unsigned int uiRemainingData) throw (CWtpExcep
         HandlePendingMessages();
         throw CWtpException(CWtpException::NACK_DATAHEADER);
     }
-    HandlePendingMessages();
     delete Port->WtpCmd;
+    HandlePendingMessages();
 
 #if USE_USB_DELAY_SWITCHES == 1
     // this sleep is requested by Mike and Bruce to address an issue with the USB/BootROM terminating a transfer
@@ -860,8 +860,8 @@ void CProtocolManager::Data (unsigned char *pData,int Length) throw (CWtpExcepti
 			throw CWtpException(CWtpException::NACK_DATA);
 		}
     }
-	HandlePendingMessages();
 	delete Port->WtpCmd;
+	HandlePendingMessages();
 }
 
 
@@ -900,8 +900,8 @@ void CProtocolManager::Done () throw (CWtpException)
 		HandlePendingMessages();
 		throw CWtpException(CWtpException::NACK_DONE);
 	}
-	HandlePendingMessages();
 	delete Port->WtpCmd;
+	HandlePendingMessages();
 }
 
 /**
@@ -948,6 +948,8 @@ void CProtocolManager::Disconnect () throw (CWtpException)
                 else
                     throw;
             }
+            delete Port->WtpCmd;
+            Port->WtpCmd = 0;
             if (Port->WtpStatus.GetStatus() == ACK)
                 break;
 
@@ -961,14 +963,11 @@ void CProtocolManager::Disconnect () throw (CWtpException)
             else
                 retry++;
 
-			if (retry < 2)
-				delete Port->WtpCmd;
         } while (retry < 2);
 
 #if DEV_DEBUG
         if(theApp.bVerbose)
         {
-            Port->WtpCmd->print();
             Port->WtpStatus.print();
         }
 #endif
@@ -978,10 +977,8 @@ void CProtocolManager::Disconnect () throw (CWtpException)
 			if (Port->WtpStatus.GetDLEN() > 0)
 				Port->GetWtpRemainingMessage();
             HandlePendingMessages();
-			delete Port->WtpCmd;
             throw CWtpException(CWtpException::NACK_DISCONNECT);
         }
-        delete Port->WtpCmd;
     }
 }
 
@@ -1034,8 +1031,8 @@ void CProtocolManager::GetTargetProtocolVersion() throw (CWtpException)
 	Message << "Build:" << TargetPV.Build << endl;
 	misc.UserMessagePrintStr(true,Message.str());
 
-	HandlePendingMessages();
 	delete Port->WtpCmd;
+	HandlePendingMessages();
 }
 
 /**
@@ -1151,8 +1148,8 @@ void CProtocolManager::GetParameters() throw (CWtpException)
 	{
 		Message << endl << "GetParameters returned LEN is not correct! LEN = 0x" << hex << (int)Port->WtpStatus.GetDLEN() << endl;
 		misc.UserMessagePrintStr(true,Message.str());
-		HandlePendingMessages();
 		delete Port->WtpCmd;
+		HandlePendingMessages();
 		throw CWtpException(CWtpException::NACK_GETPARAMETERS);
 	}
 
@@ -1218,12 +1215,12 @@ void CProtocolManager::UploadDataHeader ( UPLOAD_DATA_PARAMS* pUploadDataParams 
 	{
 		if(Port->WtpStatus.GetDLEN() > 0)
 			Port->GetWtpRemainingMessage();
-		HandlePendingMessages();
 		delete Port->WtpCmd;
+		HandlePendingMessages();
 		throw CWtpException(CWtpException::NACK_UPLOADDATAHEADER);
 	}
-	HandlePendingMessages();
 	delete Port->WtpCmd;
+	HandlePendingMessages();
 }
 
 /**
@@ -1254,12 +1251,12 @@ void CProtocolManager::UploadData() throw (CWtpException)
 	{
 		if(Port->WtpStatus.GetDLEN() > 0)
 			Port->GetWtpRemainingMessage();
-		HandlePendingMessages();
 		delete Port->WtpCmd;
+		HandlePendingMessages();
 		throw CWtpException(CWtpException::NACK_UPLOADDATA);
 	}
-	HandlePendingMessages();
 	delete Port->WtpCmd;
+	HandlePendingMessages();
 }
 
 
@@ -1321,8 +1318,8 @@ void CProtocolManager::GetPC() throw (CWtpException)
 		misc.UserMessagePrintStr(true,Message.str());
 	}
 
-	HandlePendingMessages();
 	delete Port->WtpCmd;
+	HandlePendingMessages();
 }
 
 /**
@@ -1353,12 +1350,12 @@ void CProtocolManager::PublicKey () throw (CWtpException)
 		if (Port->WtpStatus.GetDLEN() > 0)
 			Port->GetWtpRemainingMessage();
 
-		HandlePendingMessages();
 		delete Port->WtpCmd;
+		HandlePendingMessages();
 		throw CWtpException(CWtpException::NACK_PUBLICKEY);
 	}
-	HandlePendingMessages();
 	delete Port->WtpCmd;
+	HandlePendingMessages();
 }
 
 /**
@@ -1388,12 +1385,12 @@ void CProtocolManager::Password () throw (CWtpException)
 	{
 		if (Port->WtpStatus.GetDLEN() > 0)
 			Port->GetWtpRemainingMessage();
-		HandlePendingMessages();
 		delete Port->WtpCmd;
+		HandlePendingMessages();
 		throw CWtpException(CWtpException::NACK_PASSWORD);
 	}
-	HandlePendingMessages();
 	delete Port->WtpCmd;
+	HandlePendingMessages();
 }
 
 /**
@@ -1425,12 +1422,12 @@ void CProtocolManager::SignedPassword () throw (CWtpException)
 		if (Port->WtpStatus.GetDLEN() > 0)
 			Port->GetWtpRemainingMessage();
 
-		HandlePendingMessages();
 		delete Port->WtpCmd;
+		HandlePendingMessages();
     	throw CWtpException(CWtpException::NACK_SIGNEDPASSWORD);
 	}
-	HandlePendingMessages();
 	delete Port->WtpCmd;
+	HandlePendingMessages();
 }
 
 /**
