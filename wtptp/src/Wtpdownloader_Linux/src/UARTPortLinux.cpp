@@ -142,7 +142,7 @@ void CUARTPortLinux::OpenPort() throw (CWtpException)
 	options.c_oflag     &= ~OPOST;
 	options.c_cc[VMIN]   = 0;
 	options.c_cc[VTIME]  = 0;
-	options.c_cflag &= ~(CSIZE|PARENB);
+	options.c_cflag &= ~(CSIZE|PARENB|CSTOPB|HUPCL|CRTSCTS);
 	options.c_cflag |= CS8|CLOCAL|CREAD;
 	tcsetattr(uartLinuxFileDesc, TCSANOW, &options);
 	fcntl(uartLinuxFileDesc,F_SETFL,fcntl(uartLinuxFileDesc, F_GETFL) & ~O_NONBLOCK);
