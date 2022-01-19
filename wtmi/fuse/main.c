@@ -132,7 +132,7 @@ int main(int exception, char **dummy)
 {
 	u32			cmd, args[MAILBOX_MAX_ARGS];
 	u32			status, nargs;
-	enum mbox_status	mb_stat = MB_STAT_SUCCESS;
+	enum mbox_status	mb_stat;
 
 	if (exception != 0) {
 		exception_handler(exception);
@@ -154,6 +154,8 @@ int main(int exception, char **dummy)
 		if (status != NO_ERROR) {
 			nargs = 0;
 			mb_stat = args[0];
+		} else {
+			mb_stat = MB_STAT_SUCCESS;
 		}
 
 		/* Send the results back */
