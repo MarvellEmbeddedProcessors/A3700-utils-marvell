@@ -51,8 +51,8 @@ ECHO     = @echo
 SED      = @sed
 
 LOCAL_VERSION_STRING	?= -armada
-BUILD_STRING		:= $(shell git log -n 1 --pretty=format:"%h" && (git diff-index --quiet HEAD || echo -dirty))
-VERSION_STRING		:= $(LOCAL_VERSION_STRING)-$(BUILD_STRING)
+BUILD_STRING		:= $(shell command -v git >/dev/null 2>&1 && git rev-parse --is-inside-work-tree >/dev/null 2>&1 && git log -n 1 --pretty=format:"-%h" && (git diff-index --quiet HEAD || echo -dirty))
+VERSION_STRING		:= $(LOCAL_VERSION_STRING)$(BUILD_STRING)
 
 CPUOPTS  = -mthumb -mcpu=cortex-m3 -mlittle-endian
 BINPATH  = build
