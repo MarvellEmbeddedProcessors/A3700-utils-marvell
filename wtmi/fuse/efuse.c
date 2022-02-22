@@ -186,7 +186,7 @@ u32 efuse_read(u32 size, u32 row, u32 offset, u32 *args)
 	u32	status;
 	u32	loops = EFUSE_ACCESS_LOOPS(size);
 
-	if (args == NULL || row >= EFUSE_MAX_ROW || offset > EFUSE_BITS_IN_ROW) {
+	if (args == NULL || row > EFUSE_MAX_ROW || offset > EFUSE_BITS_IN_ROW) {
 		status = ERR_INVALID_ARGUMENT;
 		goto rd_error;
 	}
@@ -251,7 +251,7 @@ u32 efuse_write(u32 size, u32 row, u32 offset, u32 *args)
 	u32	loops = EFUSE_ACCESS_LOOPS(size);
 	u32	regval;
 
-	if (args == NULL || row >= EFUSE_MAX_ROW || offset > EFUSE_BITS_IN_ROW) {
+	if (args == NULL || row > EFUSE_MAX_ROW || offset > EFUSE_BITS_IN_ROW) {
 		status = ERR_INVALID_ARGUMENT;
 		goto wr_error;
 	}
