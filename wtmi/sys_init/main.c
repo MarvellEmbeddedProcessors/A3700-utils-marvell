@@ -37,7 +37,6 @@
 #include "clock.h"
 #include "avs.h"
 #include "ddr/ddrcore.h"
-#include <string.h>
 
 #if DEBUG
 #define ddr_debug printf
@@ -294,7 +293,7 @@ int sys_init_main(void)
 
 	/* Copy tuning result to reserved memory */
 	if (!ddr_para.warm_boot) {
-		memcpy(result_in_dram, &result_in_sram, sizeof(struct ddr_init_result));
+		*result_in_dram = result_in_sram;
 		*((u32 *)(DDR_TUNE_RESULT_MEM_BASE + sizeof(struct ddr_init_result))) =
 			do_checksum32((u32 *)&result_in_sram, sizeof(struct ddr_init_result));
 	}
