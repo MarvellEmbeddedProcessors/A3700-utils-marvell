@@ -6,14 +6,15 @@ SECTIONS
 {
   . = LOAD_ADDR;
   .ro : {
-    start.o (.text)
-    *(.text)
-    *(.rodata)
+    start.o (.text*)
+    *(.text*)
+    *(.rodata*)
   }
   .rw : {
-    *(.data)
+    *(.data*)
     *(.bss)
     *(COMMON)
+    *(.got*)
   }
   . = ALIGN(8);
   . = . + 0x1000; /* 4kB of stack memory */
